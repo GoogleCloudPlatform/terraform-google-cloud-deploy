@@ -1,0 +1,53 @@
+pipeline_spec = [
+  {
+    pipeline_name = "google-pipeline-diff-gke-7-private"
+    location      = "us-central1"
+    project       = "gdc-clouddeploy-source"
+    stage_targets = [{
+      target                            = "dev-7"
+      profiles                          = ["test"]
+      gke                               = "projects/gdc-clouddeploy-dev/locations/us-central1-c/clusters/private-cluster-2"
+      gke_cluster_sa                    = ["548710651430-compute@developer.gserviceaccount.com"]
+      artifact_storage                  = null
+      require_approval                  = false
+      execution_configs_service_account = null
+      worker_pool                       = "projects/gdc-clouddeploy-source/locations/us-central1/workerPools/worker-pool1"
+      }, {
+      target                            = "prod-7"
+      profiles                          = ["prod"]
+      gke                               = "projects/gdc-clouddeploy-dev/locations/us-central1-c/clusters/private-cluster-2"
+      gke_cluster_sa                    = ["548710651430-compute@developer.gserviceaccount.com"]
+      artifact_storage                  = null
+      require_approval                  = true
+      execution_configs_service_account = "deployment-prod-7-google"
+      worker_pool                       = "projects/gdc-clouddeploy-source/locations/us-central1/workerPools/worker-pool1"
+    }]
+    cloud_trigger_sa = "trigger-sa-7"
+  }
+  ,
+  {
+    pipeline_name = "google-pipeline-diff-gke-8-private"
+    location      = "us-central1"
+    project       = "gdc-clouddeploy-source"
+    stage_targets = [{
+      target                            = "dev-8"
+      profiles                          = ["test"]
+      gke                               = "projects/gdc-clouddeploy-dev/locations/us-central1-c/clusters/private-cluster-2"
+      gke_cluster_sa                    = ["548710651430-compute@developer.gserviceaccount.com"]
+      artifact_storage                  = null
+      require_approval                  = false
+      execution_configs_service_account = "deployment-dev-8-google"
+      worker_pool                       = "projects/gdc-clouddeploy-source/locations/us-central1/workerPools/worker-pool1"
+      }, {
+      target                            = "prod-8"
+      profiles                          = ["prod"]
+      gke                               = "projects/gdc-clouddeploy-dev/locations/us-central1-c/clusters/private-cluster-2"
+      gke_cluster_sa                    = ["548710651430-compute@developer.gserviceaccount.com"]
+      artifact_storage                  = null
+      require_approval                  = true
+      execution_configs_service_account = "deployment-prod-8-google"
+      worker_pool                       = "projects/gdc-clouddeploy-source/locations/us-central1/workerPools/worker-pool1"
+    }]
+    cloud_trigger_sa = "trigger-sa-8"
+  }
+]
