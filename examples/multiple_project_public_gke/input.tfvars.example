@@ -1,0 +1,53 @@
+pipeline_spec = [
+  {
+    pipeline_name = "google-pipeline-diff-gke-5"
+    location      = "us-central1"
+    project       = "gdc-clouddeploy-source"
+    stage_targets = [{
+      target                            = "dev-5"
+      profiles                          = ["test"]
+      gke                               = "projects/gdc-clouddeploy-dev/locations/us-central1-c/clusters/cluster-1"
+      gke_cluster_sa                    = ["548710651430-compute@developer.gserviceaccount.com"]
+      artifact_storage                  = null
+      require_approval                  = false
+      execution_configs_service_account = null
+      worker_pool                       = null
+      }, {
+      target                            = "prod-5"
+      profiles                          = ["prod"]
+      gke                               = "projects/gdc-clouddeploy-dev/locations/us-central1-c/clusters/cluster-1"
+      gke_cluster_sa                    = ["548710651430-compute@developer.gserviceaccount.com"]
+      artifact_storage                  = null
+      require_approval                  = true
+      execution_configs_service_account = "deployment-prod-5-google"
+      worker_pool                       = null
+    }]
+    cloud_trigger_sa = "trigger-sa-5"
+  }
+  ,
+  {
+    pipeline_name = "google-pipeline-diff-gke-6"
+    location      = "us-central1"
+    project       = "gdc-clouddeploy-source"
+    stage_targets = [{
+      target                            = "dev-6"
+      profiles                          = ["test"]
+      gke                               = "projects/gdc-clouddeploy-source/locations/us-central1-c/clusters/cluster-1"
+      gke_cluster_sa                    = ["14346266701-compute@developer.gserviceaccount.com"]
+      artifact_storage                  = null
+      require_approval                  = false
+      execution_configs_service_account = "deployment-dev-6-google"
+      worker_pool                       = null
+      }, {
+      target                            = "prod-6"
+      profiles                          = ["prod"]
+      gke                               = "projects/gdc-clouddeploy-dev/locations/us-central1-c/clusters/cluster-1"
+      gke_cluster_sa                    = ["548710651430-compute@developer.gserviceaccount.com"]
+      artifact_storage                  = null
+      require_approval                  = true
+      execution_configs_service_account = "deployment-prod-6-google"
+      worker_pool                       = null
+    }]
+    cloud_trigger_sa = "trigger-sa-6"
+  }
+]

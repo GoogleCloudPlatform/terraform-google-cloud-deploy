@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Google LLC
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,55 @@
  * limitations under the License.
  */
 
+locals {
+  projects = ["cloud-deploy-testing", "cloud-deploy-production"]
+
+}
+
 module "project" {
   source  = "terraform-google-modules/project-factory/google"
-  version = "~> 14.0"
-
-  name              = "ci-cloud-deploy"
+  version = "~> 11.0"
+  for_each = toset(local.projects)
+  name              = each.value
   random_project_id = "true"
   org_id            = var.org_id
   folder_id         = var.folder_id
   billing_account   = var.billing_account
 
   activate_apis = [
+    "orgpolicy.googleapis.com",
     "cloudresourcemanager.googleapis.com",
+    "cloudbilling.googleapis.com",
+    "clouddeploy.googleapis.com",
     "storage-api.googleapis.com",
-    "serviceusage.googleapis.com"
+    "serviceusage.googleapis.com",
+    "cloudbuild.googleapis.com",
+    "containerregistry.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "secretmanager.googleapis.com",
+    "sourcerepo.googleapis.com",
+    "artifactregistry.googleapis.com",
+    "container.googleapis.com",
+    "servicenetworking.googleapis.com",
+  ]
+  activate_api_identities = [
+    {
+      api = "cloudbuild.googleapis.com"
+      roles = [
+        "roles/storage.admin",
+        "roles/artifactregistry.admin",
+        "roles/cloudbuild.builds.builder",
+        "roles/source.writer",
+      ]
+    },
   ]
 }
+
+data "google_compute_default_service_account" "default" {
+  depends_on = [module.project]
+  for_each = toset(local.projects)
+  project  = module.project[each.value].project_id
+
+}
+
+
