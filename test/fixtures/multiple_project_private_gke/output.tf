@@ -11,9 +11,9 @@ output "cloud_deploy_service_account" {
 }
 
 output "project_id" {
-  value = var.project_id["cloud-deploy-testing"]
+  value = var.project_id["ci-cloud-deploy-test"]
 }
 
 output "target_project_id" {
-  value = var.project_id["cloud-deploy-production"]
+  value = var.project_id["ci-cloud-deploy-prod"]
 }

@@ -15,7 +15,7 @@
  */
 
 locals {
-  projects = ["cloud-deploy-testing", "cloud-deploy-production"]
+  projects = ["ci-cloud-deploy-test", "ci-cloud-deploy-prod"]
 
 }
 

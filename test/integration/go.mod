@@ -1,4 +1,4 @@
-module github.com/terraform-google-modules/terraform-google-secure-cicd/test/integration
+module github.com/terraform-google-modules/terraform-google-cloud-deploy/test/integration
 
 go 1.17
 
