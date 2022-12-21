@@ -20,7 +20,7 @@ The service accounts and targets are unique across delivery pipeline.
 
 ```hcl
 module "cloud_deploy" {
-    source = "yet to be updated"
+    source = "terraform-google-modules/cloud-deploy/google"
 
     pipeline_name                = "google-pipeline-same-gke-1"
     location                     = "us-central1"
