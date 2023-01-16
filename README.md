@@ -1,6 +1,6 @@
 # Cloud Deploy terraform module
 
-This module is used  to create gcp delivery pipelines, deploy targets and their respective service accounts.
+This module is used  to create Google Cloud Deploy [delivery pipelines, targets](https://cloud.google.com/deploy/docs/create-pipeline-targets) and their respective service accounts.
 
 ## Prerequisites
 
