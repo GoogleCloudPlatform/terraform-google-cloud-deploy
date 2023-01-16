@@ -51,28 +51,27 @@ module "cloud_deploy" {
 
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
-
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_cloud_trigger_sa"></a> [cloud\_trigger\_sa](#input\_cloud\_trigger\_sa) | Name of the Trigger service account | `string` | n/a | yes |
-| <a name="input_location"></a> [location](#input\_location) | Location of the Pipeline | `string` | n/a | yes |
-| <a name="input_pipeline_name"></a> [pipeline\_name](#input\_pipeline\_name) | Name of the Delivery Pipeline | `string` | n/a | yes |
-| <a name="input_project"></a> [project](#input\_project) | Project Name | `string` | n/a | yes |
-| <a name="input_stage_targets"></a> [stage\_targets](#input\_stage\_targets) | List of object specifications for Deploy Targets | <pre>list(object({<br>      target                            = string<br>      profiles                          = list(string)<br>      gke                               = string<br>      gke_cluster_sa                    = list(string)<br>      artifact_storage                  = string<br>      require_approval                  = bool<br>      execution_configs_service_account = string<br>      worker_pool                       = string<br>  }))</pre> | n/a | yes |
+| cloud\_trigger\_sa | Name of the Trigger service account | `string` | n/a | yes |
+| location | Location of the Pipeline | `string` | n/a | yes |
+| pipeline\_name | Name of the Delivery Pipeline | `string` | n/a | yes |
+| project | Project Name | `string` | n/a | yes |
+| stage\_targets | List of object specifications for Deploy Targets | <pre>list(object({<br>    target                            = string<br>    profiles                          = list(string)<br>    gke                               = string<br>    gke_cluster_sa                    = list(string)<br>    artifact_storage                  = string<br>    require_approval                  = bool<br>    execution_configs_service_account = string<br>    worker_pool                       = string<br>  }))</pre> | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_cloud_trigger_sa"></a> [cloud\_trigger\_sa](#output\_cloud\_trigger\_sa) | List of Cloud Build Trigger Service Account |
-| <a name="output_delivery_pipeline_and_target"></a> [delivery\_pipeline\_and\_target](#output\_delivery\_pipeline\_and\_target) | List of Delivery Pipeline and respective Target |
-| <a name="output_deployment_sa"></a> [deployment\_sa](#output\_deployment\_sa) | List of Deploy target Execution Service Account |
+| cloud\_trigger\_sa | List of Cloud Build Trigger Service Account |
+| delivery\_pipeline\_and\_target | List of Delivery Pipeline and respective Target |
+| deployment\_sa | List of Deploy target Execution Service Account |
 
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 
-## Requirements 
+## Requirements
 
 These sections describe requirements for using this example.
 

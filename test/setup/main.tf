@@ -20,9 +20,9 @@ locals {
 }
 
 module "project" {
-  source  = "terraform-google-modules/project-factory/google"
-  version = "~> 11.0"
-  for_each = toset(local.projects)
+  source            = "terraform-google-modules/project-factory/google"
+  version           = "~> 11.0"
+  for_each          = toset(local.projects)
   name              = each.value
   random_project_id = "true"
   org_id            = var.org_id
@@ -60,8 +60,8 @@ module "project" {
 
 data "google_compute_default_service_account" "default" {
   depends_on = [module.project]
-  for_each = toset(local.projects)
-  project  = module.project[each.value].project_id
+  for_each   = toset(local.projects)
+  project    = module.project[each.value].project_id
 
 }
 

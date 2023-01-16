@@ -1,3 +1,19 @@
+/**
+ * Copyright 2023 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 data "google_project" "project" {
   project_id = var.project
 }
@@ -9,15 +25,15 @@ locals {
   trigger_sa = compact([var.cloud_trigger_sa == null ? "" : join("=>", [var.project, var.cloud_trigger_sa])])
 
   target_sa = compact(distinct(flatten([for j in var.stage_targets : j.execution_configs_service_account != null ? join("=>", [element(split("/", j.gke), 1), j.execution_configs_service_account, var.project]) : ""])))
-  
 
-  default_execution_sa_binding  = compact(distinct(flatten([for j in var.stage_targets : j.execution_configs_service_account == null ? join("=>", [var.project, "default_sa", element(split("/", j.gke), 1)]) : ""])))
-  
- 
+
+  default_execution_sa_binding = compact(distinct(flatten([for j in var.stage_targets : j.execution_configs_service_account == null ? join("=>", [var.project, "default_sa", element(split("/", j.gke), 1)]) : ""])))
+
+
   default_cloud_build_sa_binding = compact([var.cloud_trigger_sa == null ? join("=>", ["default_sa", var.project]) : ""])
- 
 
-  cloud_deploy_targets = distinct([for j in var.stage_targets : { ecsa             = j.execution_configs_service_account != null ? join("@", [j.execution_configs_service_account, element(split("/", j.gke), 1)]) : null
+
+  cloud_deploy_targets = distinct([for j in var.stage_targets : { ecsa = j.execution_configs_service_account != null ? join("@", [j.execution_configs_service_account, element(split("/", j.gke), 1)]) : null
     target           = j.target
     location         = var.location
     project          = var.project
@@ -31,8 +47,8 @@ locals {
   gke_cluster_sa = compact(distinct(flatten([for j in var.stage_targets : [for h in j.gke_cluster_sa : join("=>", [var.project, h])]])))
 
   service_accounts_actas_binding = distinct(flatten([for j in var.stage_targets : j.execution_configs_service_account != null ? var.cloud_trigger_sa != null ? join("=>", [var.project, var.cloud_trigger_sa, element(split("/", j.gke), 1), j.execution_configs_service_account]) : join("=>", [var.project, "default_sa", element(split("/", j.gke), 1), j.execution_configs_service_account]) : var.cloud_trigger_sa != null ? join("=>", [var.project, var.cloud_trigger_sa, "default_sa"]) : join("=>", [var.project, "default_sa1", "default_sa"])]))
-  
-  
+
+
   service_agent_binding = compact(distinct(flatten([for j in var.stage_targets : var.project == element(split("/", j.gke), 1) ? "" : j.execution_configs_service_account == null ? "" : join("=>", [var.project, element(split("/", j.gke), 1), j.execution_configs_service_account])])))
 
   pipeline = [{
@@ -99,16 +115,16 @@ module "trigger_service_account" {
 }
 
 module "deployment_service_accounts" {
-  for_each      = toset(local.target_sa)
-  source        = "terraform-google-modules/service-accounts/google"
-  version       = "~> 3.0"
-  project_id    = element(split("=>", each.value), 0)
-  names         = [element(split("=>", each.value), 1)]
-  display_name  = "TF_managed_${element(split("=>", each.value), 1)}"
+  for_each     = toset(local.target_sa)
+  source       = "terraform-google-modules/service-accounts/google"
+  version      = "~> 3.0"
+  project_id   = element(split("=>", each.value), 0)
+  names        = [element(split("=>", each.value), 1)]
+  display_name = "TF_managed_${element(split("=>", each.value), 1)}"
   project_roles = ["${element(split("=>", each.value), 0)}=>roles/container.developer",
-                   "${element(split("=>", each.value), 2)}=>roles/storage.objectAdmin",
-                   "${element(split("=>", each.value), 2)}=>roles/logging.logWriter"
-                  ]
+    "${element(split("=>", each.value), 2)}=>roles/storage.objectAdmin",
+    "${element(split("=>", each.value), 2)}=>roles/logging.logWriter"
+  ]
 }
 
 module "default_execution_member_roles" {
