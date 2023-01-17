@@ -130,7 +130,8 @@ module "deployment_service_accounts" {
 module "default_execution_member_roles" {
   depends_on              = [module.deployment_service_accounts, data.google_project.project]
   for_each                = toset(local.default_execution_sa_binding)
-  source                  = "terraform-google-modules/iam/google//modules/member_iam"
+  source                  = "terraform-google-modules/iam/google/modules/member_iam"
+  version                 = "7.4.1"
   service_account_address = "${data.google_project.project.number}-compute@developer.gserviceaccount.com"
   prefix                  = "serviceAccount"
   project_id              = element(split("=>", each.value), 2)
@@ -140,7 +141,8 @@ module "default_execution_member_roles" {
 module "default_cloud_build_member_roles" {
   depends_on              = [module.deployment_service_accounts, data.google_project.project]
   for_each                = toset(local.default_cloud_build_sa_binding)
-  source                  = "terraform-google-modules/iam/google//modules/member_iam"
+  source                  = "terraform-google-modules/iam/google/modules/member_iam"
+  version                 = "7.4.1"
   service_account_address = "${data.google_project.project.number}@cloudbuild.gserviceaccount.com"
   prefix                  = "serviceAccount"
   project_id              = element(split("=>", each.value), 1)
