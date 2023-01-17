@@ -147,9 +147,34 @@ module "default_cloud_build_member_roles" {
   project_roles           = ["roles/cloudbuild.builds.editor", "roles/cloudbuild.builds.builder", "roles/clouddeploy.developer", "roles/clouddeploy.releaser", "roles/clouddeploy.jobRunner", "roles/storage.objectAdmin"]
 }
 
+resource "google_project_service_identity" "clouddeploy_service_agent" {
+  provider = google-beta
+  project  = var.project
+  service  = "clouddeploy.googleapis.com"
+}
+
+resource "google_project_iam_member" "clouddeploy_service_agent_role" {
+  project = var.project
+  role    = "roles/clouddeploy.serviceAgent"
+  member  = "serviceAccount:${google_project_service_identity.clouddeploy_service_agent.email}"
+}
+
+resource "google_project_service_identity" "cloudbuild_service_agent" {
+  provider = google-beta
+  project  = var.project
+  service  = "cloudbuild.googleapis.com"
+}
+
+resource "google_project_iam_member" "cloudbuild_service_agent_role" {
+  project = var.project
+  role    = "roles/cloudbuild.serviceAgent"
+  member  = "serviceAccount:${google_project_service_identity.cloudbuild_service_agent.email}"
+}
+
+
 
 resource "google_service_account_iam_member" "triger_sa_actas_deploy_sa" {
-  depends_on         = [module.deployment_service_accounts, module.trigger_service_account, data.google_project.project]
+  depends_on         = [module.deployment_service_accounts, module.trigger_service_account, data.google_project.project, google_project_iam_member.cloudbuild_service_agent_role]
   for_each           = toset(local.service_accounts_actas_binding)
   service_account_id = element(split("=>", each.value), 2) != "default_sa" ? "projects/${element(split("=>", each.value), 2)}/serviceAccounts/${element(split("=>", each.value), 3)}@${element(split("=>", each.value), 2)}.iam.gserviceaccount.com" : "projects/${element(split("=>", each.value), 0)}/serviceAccounts/${data.google_project.project.number}-compute@developer.gserviceaccount.com"
   role               = "roles/iam.serviceAccountUser"
@@ -157,7 +182,7 @@ resource "google_service_account_iam_member" "triger_sa_actas_deploy_sa" {
 }
 
 resource "google_service_account_iam_member" "cloud_build_service_agent_actas_deploy_sa" {
-  depends_on         = [module.deployment_service_accounts, module.trigger_service_account, data.google_project.project]
+  depends_on         = [module.deployment_service_accounts, module.trigger_service_account, data.google_project.project, google_project_iam_member.clouddeploy_service_agent_role]
   for_each           = toset(local.service_agent_binding)
   service_account_id = "projects/${element(split("=>", each.value), 1)}/serviceAccounts/${element(split("=>", each.value), 2)}@${element(split("=>", each.value), 1)}.iam.gserviceaccount.com"
   role               = "roles/iam.serviceAccountTokenCreator"

@@ -21,9 +21,16 @@ terraform {
       source  = "hashicorp/google"
       version = ">= 3.53, < 5.0"
     }
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = ">= 4.22, < 5.0"
+    }
   }
 
   provider_meta "google" {
+    module_name = "blueprints/terraform/cloud-deploy/v0.0.1"
+  }
+  provider_meta "google-beta" {
     module_name = "blueprints/terraform/cloud-deploy/v0.0.1"
   }
 }
