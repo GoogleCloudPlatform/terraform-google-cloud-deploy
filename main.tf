@@ -123,7 +123,8 @@ module "deployment_service_accounts" {
   display_name = "TF_managed_${element(split("=>", each.value), 1)}"
   project_roles = ["${element(split("=>", each.value), 0)}=>roles/container.developer",
     "${element(split("=>", each.value), 2)}=>roles/storage.objectAdmin",
-    "${element(split("=>", each.value), 2)}=>roles/logging.logWriter"
+    "${element(split("=>", each.value), 2)}=>roles/logging.logWriter",
+    "${element(split("=>", each.value), 0)}=>roles/logging.logWriter"
   ]
 }
 
@@ -168,9 +169,10 @@ resource "google_project_service_identity" "cloudbuild_service_agent" {
 }
 
 resource "google_project_iam_member" "cloudbuild_service_agent_role" {
-  project = var.project
-  role    = "roles/cloudbuild.serviceAgent"
-  member  = "serviceAccount:${google_project_service_identity.cloudbuild_service_agent.email}"
+  depends_on = [google_project_service_identity.cloudbuild_service_agent]
+  project    = var.project
+  role       = "roles/cloudbuild.serviceAgent"
+  member     = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
 }
 
 
@@ -184,11 +186,11 @@ resource "google_service_account_iam_member" "triger_sa_actas_deploy_sa" {
 }
 
 resource "google_service_account_iam_member" "cloud_build_service_agent_actas_deploy_sa" {
-  depends_on         = [module.deployment_service_accounts, module.trigger_service_account, data.google_project.project]
+  depends_on         = [module.deployment_service_accounts, module.trigger_service_account, data.google_project.project, google_project_iam_member.cloudbuild_service_agent_role]
   for_each           = toset(local.service_agent_binding)
   service_account_id = "projects/${element(split("=>", each.value), 1)}/serviceAccounts/${element(split("=>", each.value), 2)}@${element(split("=>", each.value), 1)}.iam.gserviceaccount.com"
   role               = "roles/iam.serviceAccountTokenCreator"
-  member             = "serviceAccount:${google_project_service_identity.cloudbuild_service_agent.email}"
+  member             = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
 }
 
 resource "google_service_account_iam_member" "cloud_deploy_service_agent_actas_deploy_sa" {
