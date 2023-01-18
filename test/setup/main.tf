@@ -64,11 +64,11 @@ data "google_compute_default_service_account" "default" {
   project    = module.project[each.value].project_id
 
 }
-/*
-resource "google_cloudbuild_trigger" "filename-trigger" {
-  depends_on = [module.project]
-  location = "us-central1"
 
+resource "google_cloudbuild_trigger" "dummy-trigger" {
+  depends_on = [module.project]
+  location   = "us-central1"
+  project    = module.project["ci-cloud-deploy-test"].project_id
   trigger_template {
     branch_name = "main"
     repo_name   = "my-repo"
@@ -82,13 +82,13 @@ resource "google_cloudbuild_trigger" "filename-trigger" {
   filename = "cloudbuild.yaml"
 }
 
-*/
+
 
 
 data "google_cloudbuild_trigger" "name" {
   project    = module.project["ci-cloud-deploy-test"].project_id
-  trigger_id = "123"
-  location   = "global"
+  trigger_id = google_cloudbuild_trigger.dummy-trigger.trigger_id
+  location   = "us-central1"
 }
 
 data "google_project" "project" {
