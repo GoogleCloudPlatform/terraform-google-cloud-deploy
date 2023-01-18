@@ -65,8 +65,15 @@ data "google_compute_default_service_account" "default" {
 
 }
 
-resource "google_cloudbuild_trigger" "dummy-trigger" {
+resource "google_project_service_identity" "cloudbuild_service_agent" {
   depends_on = [module.project]
+  provider   = google-beta
+  project    = module.project["ci-cloud-deploy-test"].project_id
+  service    = "cloudbuild.googleapis.com"
+}
+
+resource "google_cloudbuild_trigger" "dummy-trigger" {
+  depends_on = [module.project, cloudbuild_service_agent]
   location   = "us-central1"
   project    = module.project["ci-cloud-deploy-test"].project_id
   trigger_template {
