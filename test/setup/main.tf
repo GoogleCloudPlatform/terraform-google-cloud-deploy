@@ -73,7 +73,7 @@ resource "google_project_service_identity" "cloudbuild_service_agent" {
 }
 
 resource "google_cloudbuild_trigger" "dummy-trigger" {
-  depends_on = [module.project, cloudbuild_service_agent]
+  depends_on = [module.project, google_project_service_identity.cloudbuild_service_agent]
   location   = "us-central1"
   project    = module.project["ci-cloud-deploy-test"].project_id
   trigger_template {
