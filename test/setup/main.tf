@@ -64,5 +64,42 @@ data "google_compute_default_service_account" "default" {
   project    = module.project[each.value].project_id
 
 }
+/*
+resource "google_cloudbuild_trigger" "filename-trigger" {
+  depends_on = [module.project]
+  location = "us-central1"
 
+  trigger_template {
+    branch_name = "main"
+    repo_name   = "my-repo"
+  }
+
+  substitutions = {
+    _FOO = "bar"
+    _BAZ = "qux"
+  }
+
+  filename = "cloudbuild.yaml"
+}
+
+*/
+
+
+data "google_cloudbuild_trigger" "name" {
+  project    = module.project["ci-cloud-deploy-test"].project_id
+  trigger_id = "123"
+  location   = "global"
+}
+
+data "google_project" "project" {
+  project_id = module.project["ci-cloud-deploy-test"].project_id
+}
+
+
+resource "google_project_iam_member" "cloudbuild_service_agent_role" {
+  depends_on = [data.google_cloudbuild_trigger.name]
+  project    = module.project["ci-cloud-deploy-test"].project_id
+  role       = "roles/cloudbuild.serviceAgent"
+  member     = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
+}
 
