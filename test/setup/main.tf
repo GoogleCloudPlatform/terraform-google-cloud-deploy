@@ -68,12 +68,12 @@ data "google_compute_default_service_account" "default" {
 resource "google_project_service_identity" "clouddeploy_service_agent" {
   depends_on = [module.project]
   provider   = google-beta
-  project    = var.project
+  project    = module.project["ci-cloud-deploy-test"].project_id
   service    = "clouddeploy.googleapis.com"
 }
 
 resource "google_project_iam_member" "clouddeploy_service_agent_role" {
-  project = var.project
+  project = module.project["ci-cloud-deploy-test"].project_id
   role    = "roles/clouddeploy.serviceAgent"
   member  = "serviceAccount:${google_project_service_identity.clouddeploy_service_agent.email}"
 }
@@ -81,12 +81,12 @@ resource "google_project_iam_member" "clouddeploy_service_agent_role" {
 resource "google_project_service_identity" "cloudbuild_service_agent" {
   depends_on = [module.project]
   provider   = google-beta
-  project    = var.project
+  project    = module.project["ci-cloud-deploy-test"].project_id
   service    = "cloudbuild.googleapis.com"
 }
 
 resource "google_project_iam_member" "cloudbuild_service_agent_role" {
-  project = var.project
+  project = module.project["ci-cloud-deploy-test"].project_id
   role    = "roles/cloudbuild.serviceAgent"
   member  = "serviceAccount:${google_project_service_identity.cloudbuild_service_agent.email}"
 }
