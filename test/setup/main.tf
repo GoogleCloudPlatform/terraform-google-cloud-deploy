@@ -65,39 +65,29 @@ data "google_compute_default_service_account" "default" {
 
 }
 
+resource "google_project_service_identity" "clouddeploy_service_agent" {
+  depends_on = [module.project]
+  provider   = google-beta
+  project    = var.project
+  service    = "clouddeploy.googleapis.com"
+}
+
+resource "google_project_iam_member" "clouddeploy_service_agent_role" {
+  project = var.project
+  role    = "roles/clouddeploy.serviceAgent"
+  member  = "serviceAccount:${google_project_service_identity.clouddeploy_service_agent.email}"
+}
+
 resource "google_project_service_identity" "cloudbuild_service_agent" {
   depends_on = [module.project]
   provider   = google-beta
-  project    = module.project["ci-cloud-deploy-test"].project_id
+  project    = var.project
   service    = "cloudbuild.googleapis.com"
 }
 
-resource "google_cloudbuild_trigger" "dummy-trigger" {
-  depends_on = [module.project, google_project_service_identity.cloudbuild_service_agent]
-  location   = "us-central1"
-  project    = module.project["ci-cloud-deploy-test"].project_id
-  trigger_template {
-    branch_name = "main"
-    repo_name   = "my-repo"
-  }
-
-  substitutions = {
-    _FOO = "bar"
-    _BAZ = "qux"
-  }
-
-  filename = "cloudbuild.yaml"
-}
-
-
-
-data "google_cloudbuild_trigger" "name" {
-  project    = module.project["ci-cloud-deploy-test"].project_id
-  trigger_id = google_cloudbuild_trigger.dummy-trigger.trigger_id
-  location   = "us-central1"
-}
-
-data "google_project" "project" {
-  project_id = module.project["ci-cloud-deploy-test"].project_id
+resource "google_project_iam_member" "cloudbuild_service_agent_role" {
+  project = var.project
+  role    = "roles/cloudbuild.serviceAgent"
+  member  = "serviceAccount:${google_project_service_identity.cloudbuild_service_agent.email}"
 }
 
