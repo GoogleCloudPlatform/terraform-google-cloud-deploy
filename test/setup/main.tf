@@ -91,7 +91,6 @@ resource "google_cloudbuild_trigger" "dummy-trigger" {
 
 
 
-
 data "google_cloudbuild_trigger" "name" {
   project    = module.project["ci-cloud-deploy-test"].project_id
   trigger_id = google_cloudbuild_trigger.dummy-trigger.trigger_id
@@ -100,13 +99,5 @@ data "google_cloudbuild_trigger" "name" {
 
 data "google_project" "project" {
   project_id = module.project["ci-cloud-deploy-test"].project_id
-}
-
-
-resource "google_project_iam_member" "cloudbuild_service_agent_role" {
-  depends_on = [data.google_cloudbuild_trigger.name]
-  project    = module.project["ci-cloud-deploy-test"].project_id
-  role       = "roles/cloudbuild.serviceAgent"
-  member     = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
 }
 
