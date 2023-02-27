@@ -39,7 +39,7 @@ module "multiple_project_private_cluster" {
         gke_cluster_sa                    = [var.gke_sa[var.project_id["ci-cloud-deploy-prod"]]]
         artifact_storage                  = null
         require_approval                  = true
-        execution_configs_service_account = "deployment-prod-4-google-test"
+        execution_configs_service_account = null
         worker_pool                       = "projects/${var.project_id["ci-cloud-deploy-test"]}/locations/us-central1/workerPools/worker-pool"
       }]
       cloud_trigger_sa = "trigger-sa-4-test"

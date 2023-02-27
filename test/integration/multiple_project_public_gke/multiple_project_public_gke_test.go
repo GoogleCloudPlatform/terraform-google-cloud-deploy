@@ -30,7 +30,6 @@ func TestMultipleProjectPublicGKE(t *testing.T) {
 	const target1 = "dev-3-test"
 	const target2 = "prod-3-test"
 	const region = "us-central1"
-	const svc1 = "deployment-prod-3-google-test"
 	const svc2 = "trigger-sa-3-test"
 	bpt := tft.NewTFBlueprintTest(t)
 
@@ -57,8 +56,6 @@ func TestMultipleProjectPublicGKE(t *testing.T) {
 
 		assert.Equal(gcdtarget2fullname, gcdtarget2.Get("Target.name").String(), fmt.Sprintf("Target2 is Valid"))
 
-		gcdbindingsvc1 := gcloud.Run(t, fmt.Sprintf(" projects get-iam-policy  %s --flatten=bindings --filter=%s --format=\"value(bindings.role)\" ", target_projectID, svc1))
-		fmt.Println(gcdbindingsvc1)
 
 		gcdbindingsvc2 := gcloud.Run(t, fmt.Sprintf(" projects get-iam-policy  %s --flatten=bindings --filter=%s --format=\"value(bindings.role)\" ", projectID, svc2))
 		fmt.Println(gcdbindingsvc2)
