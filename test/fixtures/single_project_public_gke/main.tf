@@ -23,7 +23,7 @@ module "single_project_public_cluster" {
       pipeline_name = "google-pipeline-same-gke-1-test"
       location      = "us-central1"
       project       = var.project_id["ci-cloud-deploy-test"]
-      stage_targets = [{
+      stage_targets_gke = [{
         target                            = "dev-1-test"
         profiles                          = ["test"]
         gke                               = "projects/${var.project_id["ci-cloud-deploy-test"]}/locations/us-central1-c/clusters/cluster-2"

@@ -14,7 +14,7 @@ Private GKE cluster creation in the same project.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_pipeline_spec"></a> [pipeline\_spec](#input\_pipeline\_spec) | List of object specifications for Delivery Pipeline | <pre>list(object({<br>    pipeline_name = string<br>    location      = string<br>    project       = string<br>    stage_targets = list(object({<br>      target                            = string<br>      profiles                          = list(string)<br>      gke                               = string<br>      gke_cluster_sa                    = list(string)<br>      artifact_storage                  = string<br>      require_approval                  = bool<br>      execution_configs_service_account = string<br>      worker_pool                       = string<br>    }))<br>    cloud_trigger_sa = string<br>  }))</pre> | n/a | yes |
+| <a name="input_pipeline_spec"></a> [pipeline\_spec](#input\_pipeline\_spec) | List of object specifications for Delivery Pipeline | <pre>list(object({<br>    pipeline_name = string<br>    location      = string<br>    project       = string<br>    stage_targets_gke = list(object({<br>      target                            = string<br>      profiles                          = list(string)<br>      gke                               = string<br>      gke_cluster_sa                    = list(string)<br>      artifact_storage                  = string<br>      require_approval                  = bool<br>      execution_configs_service_account = string<br>      worker_pool                       = string<br>    }))<br>    cloud_trigger_sa = string<br>  }))</pre> | n/a | yes |
 
 ## Outputs
 

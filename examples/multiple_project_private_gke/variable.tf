@@ -19,7 +19,7 @@ variable "pipeline_spec" {
     pipeline_name = string
     location      = string
     project       = string
-    stage_targets = list(object({
+    stage_targets_gke = list(object({
       target                            = string
       profiles                          = list(string)
       gke                               = string

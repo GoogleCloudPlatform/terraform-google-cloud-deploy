@@ -25,11 +25,11 @@ module "cloud_deploy" {
     pipeline_name                = "google-pipeline-same-gke-1"
     location                     = "us-central1"
     project                      = "gdc-clouddeploy-source"
-    stage_targets = [{
+    stage_targets_gke = [{
       target                            = "google-test-1"
       profiles                          = ["test"]
       gke                               = "projects/gdc-clouddeploy-source/locations/us-central1-c/clusters/cluster-1"
-      gke_cluster_sa                    = "14346266701-compute@developer.gserviceaccount.com"
+      gke_cluster_sa                    = ["14346266701-compute@developer.gserviceaccount.com"]
       artifact_storage                  = null
       require_approval                  = false
       execution_configs_service_account = "deployment-test-1-google"
@@ -38,7 +38,7 @@ module "cloud_deploy" {
       target                            = "google-prod-1"
       profiles                          = ["prod"]
       gke                               = "projects/gdc-clouddeploy-source/locations/us-central1-c/clusters/cluster-1"
-      gke_cluster_sa                    = "14346266701-compute@developer.gserviceaccount.com"
+      gke_cluster_sa                    = ["14346266701-compute@developer.gserviceaccount.com"]
       artifact_storage                  = null
       require_approval                  = true
       execution_configs_service_account = "deployment-prod-1-google"
@@ -59,7 +59,7 @@ module "cloud_deploy" {
 | location | Location of the Pipeline | `string` | n/a | yes |
 | pipeline\_name | Name of the Delivery Pipeline | `string` | n/a | yes |
 | project | Project Name | `string` | n/a | yes |
-| stage\_targets | List of object specifications for Deploy Targets | <pre>list(object({<br>    target                            = string<br>    profiles                          = list(string)<br>    gke                               = string<br>    gke_cluster_sa                    = list(string)<br>    artifact_storage                  = string<br>    require_approval                  = bool<br>    execution_configs_service_account = string<br>    worker_pool                       = string<br>  }))</pre> | n/a | yes |
+| stage\_targets\_gke | List of object specifications for Deploy Targets | <pre>list(object({<br>    target                            = string<br>    profiles                          = list(string)<br>    gke                               = string<br>    gke_cluster_sa                    = list(string)<br>    artifact_storage                  = string<br>    require_approval                  = bool<br>    execution_configs_service_account = string<br>    worker_pool                       = string<br>  }))</pre> | n/a | yes |
 
 ## Outputs
 

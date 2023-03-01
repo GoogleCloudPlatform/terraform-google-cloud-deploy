@@ -21,54 +21,44 @@ data "google_project" "project" {
 
 locals {
 
+  non_empty_target_sa = [for j in var.stage_targets_gke : j.execution_configs_service_account != null ? j : null]
 
-  trigger_sa = compact([var.cloud_trigger_sa == null ? "" : join("=>", [var.project, var.cloud_trigger_sa])])
+  tmp_list_target_sa = [for j in local.non_empty_target_sa : j != null ? join("=>", [element(split("/", j.gke), 1), j.execution_configs_service_account]) : ""]
 
-  target_sa = compact(distinct(flatten([for j in var.stage_targets : j.execution_configs_service_account != null ? join("=>", [element(split("/", j.gke), 1), j.execution_configs_service_account, var.project]) : ""])))
-
-
-  default_execution_sa_binding = compact(distinct(flatten([for j in var.stage_targets : j.execution_configs_service_account == null ? join("=>", [var.project, "default_sa", element(split("/", j.gke), 1)]) : ""])))
+  target_sa = compact(distinct(flatten(local.tmp_list_target_sa)))
 
 
-  default_cloud_build_sa_binding = compact([var.cloud_trigger_sa == null ? join("=>", ["default_sa", var.project]) : ""])
+  tmp_list_default_execution_sa_binding = [for j in var.stage_targets_gke : j.execution_configs_service_account == null ? element(split("/", j.gke), 1) : ""]
+
+  default_execution_sa_binding = compact(distinct(flatten(local.tmp_list_default_execution_sa_binding)))
 
 
-  cloud_deploy_targets = distinct([for j in var.stage_targets : { ecsa = j.execution_configs_service_account != null ? join("@", [j.execution_configs_service_account, element(split("/", j.gke), 1)]) : null
-    target           = j.target
-    location         = var.location
-    project          = var.project
-    gke              = j.gke
-    require_approval = j.require_approval
-    artifact_storage = j.artifact_storage
-    worker_pool      = j.worker_pool
-  }])
+  tmp_list_gke_cluster_sa = [for j in var.stage_targets_gke : [for gke_sa in j.gke_cluster_sa : gke_sa]]
 
+  gke_cluster_sa = distinct(flatten(local.tmp_list_gke_cluster_sa))
 
-  gke_cluster_sa = compact(distinct(flatten([for j in var.stage_targets : [for h in j.gke_cluster_sa : join("=>", [var.project, h])]])))
+  tri_sa_actas_exe_sa = compact(distinct(flatten([for j in var.stage_targets_gke : j.execution_configs_service_account != null && var.cloud_trigger_sa != null ? join("=>", [element(split("/", j.gke), 1), j.execution_configs_service_account]) : ""])))
 
-  service_accounts_actas_binding = distinct(flatten([for j in var.stage_targets : j.execution_configs_service_account != null ? var.cloud_trigger_sa != null ? join("=>", [var.project, var.cloud_trigger_sa, element(split("/", j.gke), 1), j.execution_configs_service_account]) : join("=>", [var.project, "default_sa", element(split("/", j.gke), 1), j.execution_configs_service_account]) : var.cloud_trigger_sa != null ? join("=>", [var.project, var.cloud_trigger_sa, "default_sa"]) : join("=>", [var.project, "default_sa1", "default_sa"])]))
+  def_cloudbuild_sa_actas_exe_sa = compact(distinct(flatten([for j in var.stage_targets_gke : j.execution_configs_service_account != null && var.cloud_trigger_sa == null ? join("=>", [element(split("/", j.gke), 1), j.execution_configs_service_account]) : ""])))
 
+  tri_sa_actas_def_compute_sa = compact(distinct(flatten([for j in var.stage_targets_gke : j.execution_configs_service_account == null && var.cloud_trigger_sa != null ? "default_compute_sa" : ""])))
 
-  service_agent_binding = compact(distinct(flatten([for j in var.stage_targets : var.project == element(split("/", j.gke), 1) ? "" : j.execution_configs_service_account == null ? "" : join("=>", [var.project, element(split("/", j.gke), 1), j.execution_configs_service_account])])))
+  def_cloudbuild_sa_actas_def_compute_sa = compact(distinct(flatten([for j in var.stage_targets_gke : j.execution_configs_service_account == null && var.cloud_trigger_sa == null ? "default_compute_sa" : ""])))
 
-  pipeline = [{
-    pipe = var.pipeline_name
-    loc  = var.location
-    pro  = var.project
-  targets = var.stage_targets }]
+  service_agent_binding = compact(distinct(flatten([for j in var.stage_targets_gke : var.project != element(split("/", j.gke), 1) && j.execution_configs_service_account != null ? join("=>", [element(split("/", j.gke), 1), j.execution_configs_service_account]) : ""])))
+
 
 
 }
 
 resource "google_clouddeploy_delivery_pipeline" "delivery_pipeline" {
   depends_on = [module.trigger_service_account, module.deployment_service_accounts]
-  for_each   = { for pip in local.pipeline : "${pip.pro}-${pip.loc}-${pip.pipe}" => pip }
-  location   = each.value.loc
-  name       = each.value.pipe
-  project    = each.value.pro
+  location   = var.location
+  name       = var.pipeline_name
+  project    = var.project
   serial_pipeline {
     dynamic "stages" {
-      for_each = each.value.targets
+      for_each = var.stage_targets_gke
       content {
         profiles  = stages.value["profiles"]
         target_id = stages.value["target"]
@@ -80,37 +70,37 @@ resource "google_clouddeploy_delivery_pipeline" "delivery_pipeline" {
 
 resource "google_clouddeploy_target" "target" {
   depends_on = [module.trigger_service_account, module.deployment_service_accounts]
-  for_each   = { for tar in local.cloud_deploy_targets : "${tar.project}-${tar.location}-${tar.target}" => tar }
-  location   = each.value.location
+  for_each   = { for tar in var.stage_targets_gke : tar.target => tar }
+  location   = var.location
   name       = each.value.target
   gke {
     cluster = each.value.gke
   }
   require_approval = each.value.require_approval
-  project          = each.value.project
+  project          = var.project
   execution_configs {
     usages           = ["RENDER", "DEPLOY"]
-    service_account  = each.value.ecsa == null ? "" : "${each.value.ecsa}.iam.gserviceaccount.com"
+    service_account  = each.value.execution_configs_service_account != null ? module.deployment_service_accounts[join("=>", [element(split("/", each.value.gke), 1), each.value.execution_configs_service_account])].email : ""
     worker_pool      = each.value.worker_pool
-    artifact_storage = each.value.artifact_storage == null ? "" : each.value.artifact_storage
+    artifact_storage = each.value.artifact_storage != null ? each.value.artifact_storage : ""
   }
 }
 
 
 module "trigger_service_account" {
-  for_each     = toset(local.trigger_sa)
+  count        = var.cloud_trigger_sa != null ? 1 : 0
   source       = "terraform-google-modules/service-accounts/google"
   version      = "~> 3.0"
-  project_id   = element(split("=>", each.value), 0)
-  names        = [element(split("=>", each.value), 1)]
-  display_name = "TF_managed_${element(split("=>", each.value), 1)}"
+  project_id   = var.project
+  names        = [var.cloud_trigger_sa]
+  display_name = "TF_managed_${var.cloud_trigger_sa}"
   project_roles = [
-    "${element(split("=>", each.value), 0)}=>roles/cloudbuild.builds.editor",
-    "${element(split("=>", each.value), 0)}=>roles/cloudbuild.builds.builder",
-    "${element(split("=>", each.value), 0)}=>roles/clouddeploy.developer",
-    "${element(split("=>", each.value), 0)}=>roles/clouddeploy.releaser",
-    "${element(split("=>", each.value), 0)}=>roles/clouddeploy.jobRunner",
-    "${element(split("=>", each.value), 0)}=>roles/storage.objectAdmin"
+    "${var.project}=>roles/cloudbuild.builds.editor",
+    "${var.project}=>roles/cloudbuild.builds.builder",
+    "${var.project}=>roles/clouddeploy.developer",
+    "${var.project}=>roles/clouddeploy.releaser",
+    "${var.project}=>roles/clouddeploy.jobRunner",
+    "${var.project}=>roles/storage.objectAdmin"
   ]
 }
 
@@ -122,8 +112,8 @@ module "deployment_service_accounts" {
   names        = [element(split("=>", each.value), 1)]
   display_name = "TF_managed_${element(split("=>", each.value), 1)}"
   project_roles = ["${element(split("=>", each.value), 0)}=>roles/container.developer",
-    "${element(split("=>", each.value), 2)}=>roles/storage.objectAdmin",
-    "${element(split("=>", each.value), 2)}=>roles/logging.logWriter",
+    "${var.project}=>roles/storage.objectAdmin",
+    "${var.project}=>roles/logging.logWriter",
     "${element(split("=>", each.value), 0)}=>roles/logging.logWriter"
   ]
 }
@@ -135,34 +125,57 @@ module "default_execution_member_roles" {
   version                 = "7.4.1"
   service_account_address = "${data.google_project.project.number}-compute@developer.gserviceaccount.com"
   prefix                  = "serviceAccount"
-  project_id              = element(split("=>", each.value), 2)
+  project_id              = each.value
   project_roles           = ["roles/container.developer"]
 }
 
 module "default_cloud_build_member_roles" {
   depends_on              = [module.deployment_service_accounts, data.google_project.project]
-  for_each                = toset(local.default_cloud_build_sa_binding)
+  count                   = var.cloud_trigger_sa == null ? 1 : 0
   source                  = "terraform-google-modules/iam/google//modules/member_iam"
   version                 = "7.4.1"
   service_account_address = "${data.google_project.project.number}@cloudbuild.gserviceaccount.com"
   prefix                  = "serviceAccount"
-  project_id              = element(split("=>", each.value), 1)
+  project_id              = var.project
   project_roles           = ["roles/cloudbuild.builds.editor", "roles/cloudbuild.builds.builder", "roles/clouddeploy.developer", "roles/clouddeploy.releaser", "roles/clouddeploy.jobRunner", "roles/storage.objectAdmin"]
 }
 
-
-resource "google_service_account_iam_member" "triger_sa_actas_deploy_sa" {
+resource "google_service_account_iam_member" "tri_sa_actas_exe_sa" {
   depends_on         = [module.deployment_service_accounts, module.trigger_service_account, data.google_project.project]
-  for_each           = toset(local.service_accounts_actas_binding)
-  service_account_id = element(split("=>", each.value), 2) != "default_sa" ? "projects/${element(split("=>", each.value), 2)}/serviceAccounts/${element(split("=>", each.value), 3)}@${element(split("=>", each.value), 2)}.iam.gserviceaccount.com" : "projects/${element(split("=>", each.value), 0)}/serviceAccounts/${data.google_project.project.number}-compute@developer.gserviceaccount.com"
+  for_each           = toset(local.tri_sa_actas_exe_sa)
+  service_account_id = "projects/${element(split("=>", each.value), 0)}/serviceAccounts/${element(split("=>", each.value), 1)}@${element(split("=>", each.value), 0)}.iam.gserviceaccount.com"
   role               = "roles/iam.serviceAccountUser"
-  member             = element(split("=>", each.value), 1) != "default_sa" ? element(split("=>", each.value), 1) != "default_sa1" ? "serviceAccount:${element(split("=>", each.value), 1)}@${element(split("=>", each.value), 0)}.iam.gserviceaccount.com" : "serviceAccount:${data.google_project.project.number}@cloudbuild.gserviceaccount.com" : "serviceAccount:${data.google_project.project.number}@cloudbuild.gserviceaccount.com"
+  member             = "serviceAccount:${module.trigger_service_account[0].email}"
+}
+
+resource "google_service_account_iam_member" "def_cloudbuild_sa_actas_exe_sa" {
+  depends_on         = [module.deployment_service_accounts, module.trigger_service_account, data.google_project.project]
+  for_each           = toset(local.def_cloudbuild_sa_actas_exe_sa)
+  service_account_id = "projects/${element(split("=>", each.value), 0)}/serviceAccounts/${element(split("=>", each.value), 1)}@${element(split("=>", each.value), 0)}.iam.gserviceaccount.com"
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${data.google_project.project.number}@cloudbuild.gserviceaccount.com"
+}
+
+resource "google_service_account_iam_member" "tri_sa_actas_def_compute_sa" {
+  depends_on         = [module.deployment_service_accounts, module.trigger_service_account, data.google_project.project]
+  for_each           = toset(local.tri_sa_actas_def_compute_sa)
+  service_account_id = "projects/${var.project}/serviceAccounts/${data.google_project.project.number}-compute@developer.gserviceaccount.com"
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${module.trigger_service_account[0].email}"
+}
+
+resource "google_service_account_iam_member" "def_cloudbuild_sa_actas_def_compute_sa" {
+  depends_on         = [module.deployment_service_accounts, module.trigger_service_account, data.google_project.project]
+  for_each           = toset(local.def_cloudbuild_sa_actas_def_compute_sa)
+  service_account_id = "projects/${var.project}/serviceAccounts/${data.google_project.project.number}-compute@developer.gserviceaccount.com"
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${data.google_project.project.number}@cloudbuild.gserviceaccount.com"
 }
 
 resource "google_service_account_iam_member" "cloud_build_service_agent_actas_deploy_sa" {
   depends_on         = [module.deployment_service_accounts, module.trigger_service_account, data.google_project.project]
   for_each           = toset(local.service_agent_binding)
-  service_account_id = "projects/${element(split("=>", each.value), 1)}/serviceAccounts/${element(split("=>", each.value), 2)}@${element(split("=>", each.value), 1)}.iam.gserviceaccount.com"
+  service_account_id = "projects/${element(split("=>", each.value), 0)}/serviceAccounts/${element(split("=>", each.value), 1)}@${element(split("=>", each.value), 0)}.iam.gserviceaccount.com"
   role               = "roles/iam.serviceAccountTokenCreator"
   member             = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
 }
@@ -170,16 +183,16 @@ resource "google_service_account_iam_member" "cloud_build_service_agent_actas_de
 resource "google_service_account_iam_member" "cloud_deploy_service_agent_actas_deploy_sa" {
   depends_on         = [module.deployment_service_accounts, module.trigger_service_account, data.google_project.project]
   for_each           = toset(local.service_agent_binding)
-  service_account_id = "projects/${element(split("=>", each.value), 1)}/serviceAccounts/${element(split("=>", each.value), 2)}@${element(split("=>", each.value), 1)}.iam.gserviceaccount.com"
+  service_account_id = "projects/${element(split("=>", each.value), 0)}/serviceAccounts/${element(split("=>", each.value), 1)}@${element(split("=>", each.value), 0)}.iam.gserviceaccount.com"
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-clouddeploy.iam.gserviceaccount.com"
 }
 
 resource "google_project_iam_member" "binding_gke_sa_to_storage_source" {
   for_each = toset(local.gke_cluster_sa)
-  project  = element(split("=>", each.value), 0)
+  project  = var.project
   role     = "roles/storage.objectViewer"
-  member   = "serviceAccount:${element(split("=>", each.value), 1)}"
+  member   = "serviceAccount:${each.value}"
 
 }
 
