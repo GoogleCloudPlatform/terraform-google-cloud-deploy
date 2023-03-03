@@ -20,14 +20,14 @@ again.
 
 All submissions, including submissions by project members, require review. We
 use GitHub pull requests for this purpose. Consult
-[GitHub Help](https://help.github.com/articles/about-pull-requests/) for more
+[GitHub Help](https://docs.github.com/articles/about-pull-requests) for more
 information on using pull requests.
 
 ## Development
 
 The following dependencies must be installed on the development system:
 
-- [Docker Engine][docker-engine]
+- [Docker][docker]
 - [Google Cloud SDK][google-cloud-sdk]
 - [make]
 
@@ -117,15 +117,15 @@ maintain a standard of quality.
 
 Run `make docker_test_lint`.
 
-[docker-engine]: https://www.docker.com/products/docker-engine
-[flake8]: http://flake8.pycqa.org/en/latest/
-[gofmt]: https://golang.org/cmd/gofmt/
-[google-cloud-sdk]: https://cloud.google.com/sdk/install
+[docker]: https://www.docker.com/
+[flake8]: https://flake8.pycqa.org/en/latest/
+[gofmt]: https://pkg.go.dev/cmd/gofmt
+[google-cloud-sdk]: https://cloud.google.com/sdk/docs/install
 [hadolint]: https://github.com/hadolint/hadolint
-[inspec]: https://inspec.io/
+[inspec]: https://community.chef.io/tools/chef-inspec
 [kitchen-terraform]: https://github.com/newcontext-oss/kitchen-terraform
 [kitchen]: https://kitchen.ci/
 [make]: https://en.wikipedia.org/wiki/Make_(software)
 [shellcheck]: https://www.shellcheck.net/
-[terraform-docs]: https://github.com/segmentio/terraform-docs
-[terraform]: https://terraform.io/
+[terraform-docs]: https://github.com/terraform-docs/terraform-docs
+[terraform]: https://www.terraform.io/
