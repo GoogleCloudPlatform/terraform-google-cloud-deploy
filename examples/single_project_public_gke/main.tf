@@ -28,9 +28,12 @@ module "vpc" {
 
   subnets = [
     {
-      subnet_name   = "subnet-01"
-      subnet_ip     = "10.244.252.0/22"
-      subnet_region = var.pipeline_spec[0].location
+      subnet_name           = "subnet-01"
+      subnet_ip             = "10.244.252.0/22"
+      subnet_region         = var.pipeline_spec[0].location
+      subnet_private_access = "true"
+      subnet_flow_logs      = "true"
+      description           = "This subnet has a description"
     }
   ]
 
@@ -89,7 +92,7 @@ module "gke" {
     auto_upgrade       = true                # Enabling Auto Upgrade Functionality
     initial_node_count = 1                   # Minimum Nodes required for ASM to work
     min_count          = 1                   # Minimum Node Count
-    max_count          = 3                   # Maximum Node Count for Cluster
+    max_count          = 2                   # Maximum Node Count for Cluster
     max_pods_per_node  = 10                  # Maximum pods per node. Default is 110
   }, ]
 }
