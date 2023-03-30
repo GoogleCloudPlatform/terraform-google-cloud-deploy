@@ -63,7 +63,7 @@ module "gke" {
   project_id                 = var.pipeline_spec[0].project
   name                       = local.cluster_name
   region                     = "us-central1"
-  zones                      = ["us-central1-b","us-central1-c"]
+  zones                      = ["us-central1-b", "us-central1-c"]
   network                    = module.vpc.network_name
   subnetwork                 = module.vpc.subnets_names[0]
   ip_range_pods              = "pod-range"
@@ -87,10 +87,10 @@ module "gke" {
     node_locations     = "us-central1-c"     # Region for Node Locations. Must Match VPC region to provision
     autoscaling        = true                # Enabling Auto Scaling for the Cluster
     auto_upgrade       = true                # Enabling Auto Upgrade Functionality
-    initial_node_count = 3                   # Minimum Nodes required for ASM to work
-    min_count          = 3                   # Minimum Node Count
-    max_count          = 6                   # Maximum Node Count for Cluster
-    max_pods_per_node  = 110                 # Maximum pods per node. Default is 110
+    initial_node_count = 1                   # Minimum Nodes required for ASM to work
+    min_count          = 1                   # Minimum Node Count
+    max_count          = 3                   # Maximum Node Count for Cluster
+    max_pods_per_node  = 10                  # Maximum pods per node. Default is 110
   }, ]
 }
 

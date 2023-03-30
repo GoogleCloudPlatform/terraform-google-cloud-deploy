@@ -66,14 +66,6 @@ data "google_compute_default_service_account" "default" {
 
 }
 
-/*
-resource "google_project_default_service_accounts" "my_project" {
-  for_each       = toset(local.projects)
-  project        = module.project[each.value].project_id
-  action         = "DEPRIVILEGE"
-  restore_policy = "REVERT"
-}
-*/
 resource "google_project_service_identity" "clouddeploy_service_agent" {
   depends_on = [module.project]
   provider   = google-beta
