@@ -63,7 +63,7 @@ module "gke" {
   project_id                 = var.pipeline_spec[0].project
   name                       = local.cluster_name
   region                     = "us-central1"
-  zones                      = ["us-central1-c"]
+  zones                      = ["us-central1-b","us-central1-c"]
   network                    = module.vpc.network_name
   subnetwork                 = module.vpc.subnets_names[0]
   ip_range_pods              = "pod-range"
