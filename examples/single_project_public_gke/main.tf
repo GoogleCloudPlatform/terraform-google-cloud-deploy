@@ -123,6 +123,6 @@ module "cloud_deploy" {
     worker_pool                       = null
   }]
   cloud_trigger_sa = "trigger-sa-1-test"
-  depends_on       = [module.gke]
+  # depends_on       = [module.gke]
 
 }
