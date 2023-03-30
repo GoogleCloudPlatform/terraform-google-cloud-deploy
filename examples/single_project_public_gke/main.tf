@@ -106,7 +106,7 @@ module "cloud_deploy" {
   stage_targets = [{
     target                            = "dev-1-test"
     profiles                          = ["test"]
-    gke                               = "projects/${var.pipeline_spec[0].project}/location/${var.pipeline_spec[0].location}/clusters/${local.cluster_name}"
+    gke                               = "projects/${var.pipeline_spec[0].project}/locations/${var.pipeline_spec[0].location}/clusters/${local.cluster_name}"
     gke_cluster_sa                    = [data.google_compute_default_service_account.default.email]
     artifact_storage                  = null
     require_approval                  = false
@@ -115,7 +115,7 @@ module "cloud_deploy" {
     }, {
     target                            = "prod-1-test"
     profiles                          = ["prod"]
-    gke                               = "projects/${var.pipeline_spec[0].project}/location/${var.pipeline_spec[0].location}/clusters/${local.cluster_name}"
+    gke                               = "projects/${var.pipeline_spec[0].project}/locations/${var.pipeline_spec[0].location}/clusters/${local.cluster_name}"
     gke_cluster_sa                    = [data.google_compute_default_service_account.default.email]
     artifact_storage                  = null
     require_approval                  = true
