@@ -15,12 +15,28 @@
  */
 
 module "cloud_deploy" {
-
-  source            = "../../"
-  for_each          = { for i in var.pipeline_spec : i.pipeline_name => i }
-  pipeline_name     = each.key
-  location          = each.value.location
-  project           = each.value.project
-  stage_targets_gke = each.value.stage_targets_gke
-  cloud_trigger_sa  = each.value.cloud_trigger_sa
+  source        = "../../"
+  pipeline_name = "google-pipeline-same-gke-2-test"
+  location      = "us-central1"
+  project       = var.pipeline_spec[0].project
+  stage_targets = [{
+    target                            = "dev-2-test"
+    profiles                          = ["test"]
+    gke                               = var.pipeline_spec[0].stage_targets[0].gke
+    gke_cluster_sa                    = var.pipeline_spec[0].stage_targets[0].gke_cluster_sa
+    artifact_storage                  = null
+    require_approval                  = false
+    execution_configs_service_account = null
+    worker_pool                       = var.pipeline_spec[0].stage_targets[0].worker_pool
+    }, {
+    target                            = "prod-2-test"
+    profiles                          = ["prod"]
+    gke                               = var.pipeline_spec[0].stage_targets[1].gke
+    gke_cluster_sa                    = var.pipeline_spec[0].stage_targets[1].gke_cluster_sa
+    artifact_storage                  = null
+    require_approval                  = true
+    execution_configs_service_account = "deployment-prod-2-google-test"
+    worker_pool                       = var.pipeline_spec[0].stage_targets[1].worker_pool
+  }]
+  cloud_trigger_sa = "trigger-sa-2-test"
 }

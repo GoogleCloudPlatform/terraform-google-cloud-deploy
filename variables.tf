@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-variable "stage_targets_gke" {
+variable "stage_targets" {
   type = list(object({
     target                            = string
     profiles                          = list(string)

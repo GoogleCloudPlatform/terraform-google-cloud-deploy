@@ -21,31 +21,31 @@ data "google_project" "project" {
 
 locals {
 
-  non_empty_target_sa = [for j in var.stage_targets_gke : j.execution_configs_service_account != null ? j : null]
+  non_empty_target_sa = [for j in var.stage_targets : j.execution_configs_service_account != null ? j : null]
 
   tmp_list_target_sa = [for j in local.non_empty_target_sa : j != null ? join("=>", [element(split("/", j.gke), 1), j.execution_configs_service_account]) : ""]
 
   target_sa = compact(distinct(flatten(local.tmp_list_target_sa)))
 
 
-  tmp_list_default_execution_sa_binding = [for j in var.stage_targets_gke : j.execution_configs_service_account == null ? element(split("/", j.gke), 1) : ""]
+  tmp_list_default_execution_sa_binding = [for j in var.stage_targets : j.execution_configs_service_account == null ? element(split("/", j.gke), 1) : ""]
 
   default_execution_sa_binding = compact(distinct(flatten(local.tmp_list_default_execution_sa_binding)))
 
 
-  tmp_list_gke_cluster_sa = [for j in var.stage_targets_gke : [for gke_sa in j.gke_cluster_sa : gke_sa]]
+  tmp_list_gke_cluster_sa = [for j in var.stage_targets : [for gke_sa in j.gke_cluster_sa : gke_sa]]
 
   gke_cluster_sa = distinct(flatten(local.tmp_list_gke_cluster_sa))
 
-  tri_sa_actas_exe_sa = compact(distinct(flatten([for j in var.stage_targets_gke : j.execution_configs_service_account != null && var.cloud_trigger_sa != null ? join("=>", [element(split("/", j.gke), 1), j.execution_configs_service_account]) : ""])))
+  tri_sa_actas_exe_sa = compact(distinct(flatten([for j in var.stage_targets : j.execution_configs_service_account != null && var.cloud_trigger_sa != null ? join("=>", [element(split("/", j.gke), 1), j.execution_configs_service_account]) : ""])))
 
-  def_cloudbuild_sa_actas_exe_sa = compact(distinct(flatten([for j in var.stage_targets_gke : j.execution_configs_service_account != null && var.cloud_trigger_sa == null ? join("=>", [element(split("/", j.gke), 1), j.execution_configs_service_account]) : ""])))
+  def_cloudbuild_sa_actas_exe_sa = compact(distinct(flatten([for j in var.stage_targets : j.execution_configs_service_account != null && var.cloud_trigger_sa == null ? join("=>", [element(split("/", j.gke), 1), j.execution_configs_service_account]) : ""])))
 
-  tri_sa_actas_def_compute_sa = compact(distinct(flatten([for j in var.stage_targets_gke : j.execution_configs_service_account == null && var.cloud_trigger_sa != null ? "default_compute_sa" : ""])))
+  tri_sa_actas_def_compute_sa = compact(distinct(flatten([for j in var.stage_targets : j.execution_configs_service_account == null && var.cloud_trigger_sa != null ? "default_compute_sa" : ""])))
 
-  def_cloudbuild_sa_actas_def_compute_sa = compact(distinct(flatten([for j in var.stage_targets_gke : j.execution_configs_service_account == null && var.cloud_trigger_sa == null ? "default_compute_sa" : ""])))
+  def_cloudbuild_sa_actas_def_compute_sa = compact(distinct(flatten([for j in var.stage_targets : j.execution_configs_service_account == null && var.cloud_trigger_sa == null ? "default_compute_sa" : ""])))
 
-  service_agent_binding = compact(distinct(flatten([for j in var.stage_targets_gke : var.project != element(split("/", j.gke), 1) && j.execution_configs_service_account != null ? join("=>", [element(split("/", j.gke), 1), j.execution_configs_service_account]) : ""])))
+  service_agent_binding = compact(distinct(flatten([for j in var.stage_targets : var.project != element(split("/", j.gke), 1) && j.execution_configs_service_account != null ? join("=>", [element(split("/", j.gke), 1), j.execution_configs_service_account]) : ""])))
 
 
 
@@ -58,7 +58,7 @@ resource "google_clouddeploy_delivery_pipeline" "delivery_pipeline" {
   project    = var.project
   serial_pipeline {
     dynamic "stages" {
-      for_each = var.stage_targets_gke
+      for_each = var.stage_targets
       content {
         profiles  = stages.value["profiles"]
         target_id = stages.value["target"]
@@ -70,7 +70,7 @@ resource "google_clouddeploy_delivery_pipeline" "delivery_pipeline" {
 
 resource "google_clouddeploy_target" "target" {
   depends_on = [module.trigger_service_account, module.deployment_service_accounts]
-  for_each   = { for tar in var.stage_targets_gke : tar.target => tar }
+  for_each   = { for tar in var.stage_targets : tar.target => tar }
   location   = var.location
   name       = each.value.target
   gke {
