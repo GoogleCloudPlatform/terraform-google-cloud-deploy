@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,36 @@
  * limitations under the License.
  */
 
-variable "project_id" {
-  description = "The project ID to deploy to"
-  type        = string
+variable "stage_targets" {
+  type = list(object({
+    target                            = string
+    profiles                          = list(string)
+    gke                               = string
+    gke_cluster_sa                    = list(string)
+    artifact_storage                  = string
+    require_approval                  = bool
+    execution_configs_service_account = string
+    worker_pool                       = string
+  }))
+  description = "List of object specifications for Deploy Targets"
 }
 
-variable "bucket_name" {
-  description = "The name of the bucket to create"
+variable "pipeline_name" {
   type        = string
+  description = "Name of the Delivery Pipeline"
+}
+
+variable "location" {
+  type        = string
+  description = "Location of the Pipeline"
+}
+
+variable "project" {
+  type        = string
+  description = "Project Name"
+}
+
+variable "cloud_trigger_sa" {
+  type        = string
+  description = "Name of the Trigger service account"
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-variable "project_id" {
-  description = "The ID of the project in which to provision resources."
-  type        = string
+output "delivery_pipeline_and_target" {
+  value = module.single_project_private_cluster.delivery_pipeline_and_target
 }
 
-variable "bucket_name" {
-  description = "The name of the bucket to create."
-  type        = string
+output "cloud_trigger_service_account" {
+  value = module.single_project_private_cluster.cloud_deploy_service_account
 }
+
+output "cloud_deploy_service_account" {
+  value = module.single_project_private_cluster.delivery_pipeline_and_target
+}
+
+output "project_id" {
+  value = var.project_id["ci-cloud-deploy-test"]
+}
+

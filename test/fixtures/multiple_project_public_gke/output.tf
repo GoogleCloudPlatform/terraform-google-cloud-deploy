@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,22 @@
  * limitations under the License.
  */
 
-module "cloud_deploy" {
-  source = "../.."
+output "delivery_pipeline_and_target" {
+  value = module.multiple_project_public_cluster.delivery_pipeline_and_target
+}
 
-  project_id  = var.project_id
-  bucket_name = var.bucket_name
+output "cloud_trigger_service_account" {
+  value = module.multiple_project_public_cluster.cloud_deploy_service_account
+}
+
+output "cloud_deploy_service_account" {
+  value = module.multiple_project_public_cluster.delivery_pipeline_and_target
+}
+
+output "project_id" {
+  value = var.project_id["ci-cloud-deploy-test"]
+}
+
+output "target_project_id" {
+  value = var.project_id["ci-cloud-deploy-prod"]
 }

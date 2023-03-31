@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-output "cloud_trigger_sa" {
-  value       = module.trigger_service_account[*].email
+output "cloud_trigger_service_account" {
+  value       = [for i in var.pipeline_spec[*].pipeline_name : module.cloud_deploy.cloud_trigger_sa]
   description = "List of Cloud Build Trigger Service Account"
 }
 
-output "deployment_sa" {
-  value       = [for i in local.target_sa : module.deployment_service_accounts[i].email]
+output "cloud_deploy_service_account" {
+  value       = [for i in var.pipeline_spec[*].pipeline_name : module.cloud_deploy.deployment_sa]
   description = "List of Deploy target Execution Service Account"
 }
 
-
 output "delivery_pipeline_and_target" {
-  value       = { "google_clouddeploy_delivery_pipeline.delivery_pipeline.id" = flatten([for j in var.stage_targets[*].target : google_clouddeploy_target.target[j].id]) }
+  value       = [for i in var.pipeline_spec[*].pipeline_name : module.cloud_deploy.delivery_pipeline_and_target]
   description = "List of Delivery Pipeline and respective Target"
 }
+

@@ -1,85 +1,104 @@
-# terraform-google-cloud-deploy
+# Cloud Deploy terraform module
 
-This module was generated from [terraform-google-module-template](https://github.com/terraform-google-modules/terraform-google-module-template/), which by default generates a module that simply creates a GCS bucket. As the module develops, this README should be updated.
+This module is used  to create Google Cloud Deploy [delivery pipelines, targets](https://cloud.google.com/deploy/docs/create-pipeline-targets) and their respective service accounts.
 
-The resources/services/activations/deletions that this module will create/trigger are:
+## Prerequisites
 
-- Create a GCS bucket with the provided name
+This example needs below mentioned prerequisites are in place before consuming the example.
 
-## Usage
+Target GKE clusters should be operational
 
-Basic usage of this module is as follows:
+Edit the Organization Policy "iam.disableCrossProjectServiceAccountUsage" to "not enforce" in all the target project in case deployment service accounts are created in different projects.
+
+Cloud deploy manifests file repo should be connected in cloud builds trigger section
+
+VPC and VPN creation (https://cloud.google.com/architecture/accessing-private-gke-clusters-with-cloud-build-private-pools) for private clusters
+
+The service accounts and targets are unique across delivery pipeline.
+
+## Sample Usage:
 
 ```hcl
 module "cloud_deploy" {
-  source  = "terraform-google-modules/cloud-deploy/google"
-  version = "~> 0.1"
+    source = "terraform-google-modules/cloud-deploy/google"
 
-  project_id  = "<PROJECT ID>"
-  bucket_name = "gcs-test-bucket"
+    pipeline_name                = "google-pipeline-same-gke-1"
+    location                     = "us-central1"
+    project                      = "gdc-clouddeploy-source"
+    stage_targets = [{
+      target                            = "google-test-1"
+      profiles                          = ["test"]
+      gke                               = "projects/gdc-clouddeploy-source/locations/us-central1-c/clusters/cluster-1"
+      gke_cluster_sa                    = ["14346266701-compute@developer.gserviceaccount.com"]
+      artifact_storage                  = null
+      require_approval                  = false
+      execution_configs_service_account = "deployment-test-1-google"
+      worker_pool                       = null
+      }, {
+      target                            = "google-prod-1"
+      profiles                          = ["prod"]
+      gke                               = "projects/gdc-clouddeploy-source/locations/us-central1-c/clusters/cluster-1"
+      gke_cluster_sa                    = ["14346266701-compute@developer.gserviceaccount.com"]
+      artifact_storage                  = null
+      require_approval                  = true
+      execution_configs_service_account = "deployment-prod-1-google"
+      worker_pool                       = null
+    }]
+    cloud_trigger_sa = "cd-trigger-1"
 }
 ```
 
-Functional examples are included in the
-[examples](./examples/) directory.
+
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| bucket\_name | The name of the bucket to create | `string` | n/a | yes |
-| project\_id | The project ID to deploy to | `string` | n/a | yes |
+| cloud\_trigger\_sa | Name of the Trigger service account | `string` | n/a | yes |
+| location | Location of the Pipeline | `string` | n/a | yes |
+| pipeline\_name | Name of the Delivery Pipeline | `string` | n/a | yes |
+| project | Project Name | `string` | n/a | yes |
+| stage\_targets | List of object specifications for Deploy Targets | <pre>list(object({<br>    target                            = string<br>    profiles                          = list(string)<br>    gke                               = string<br>    gke_cluster_sa                    = list(string)<br>    artifact_storage                  = string<br>    require_approval                  = bool<br>    execution_configs_service_account = string<br>    worker_pool                       = string<br>  }))</pre> | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| bucket\_name | Name of the bucket |
+| cloud\_trigger\_sa | List of Cloud Build Trigger Service Account |
+| delivery\_pipeline\_and\_target | List of Delivery Pipeline and respective Target |
+| deployment\_sa | List of Deploy target Execution Service Account |
 
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 
 ## Requirements
 
-These sections describe requirements for using this module.
+These sections describe requirements for using this example.
 
-### Software
+## Software
 
 The following dependencies must be available:
 
-- [Terraform][terraform] v0.13
-- [Terraform Provider for GCP][terraform-provider-gcp] plugin v3.0
+* Terraform ~> v0.13+
+* Terraform Provider for GCP ~> v3.53+
+* Terraform Provider for GCP Beta ~> v3.53+
 
-### Service Account
 
-A service account with the following roles must be used to provision
-the resources of this module:
+## Service Account:
 
-- Storage Admin: `roles/storage.admin`
+Add yourself to service account user roles for the created service account.
 
-The [Project Factory module][project-factory-module] and the
-[IAM module][iam-module] may be used in combination to provision a
-service account with the necessary roles applied.
+## APIs
 
-### APIs
+Enable below api's
 
-A project with the following APIs enabled must be used to host the
-resources of this module:
-
-- Google Cloud Storage JSON API: `storage-api.googleapis.com`
-
-The [Project Factory module][project-factory-module] can be used to
-provision a project with the necessary APIs enabled.
+* "clouddeploy.googleapis.com"
+* "container.googleapis.com".
 
 ## Contributing
 
 Refer to the [contribution guidelines](./CONTRIBUTING.md) for
 information on contributing to this module.
-
-[iam-module]: https://registry.terraform.io/modules/terraform-google-modules/iam/google
-[project-factory-module]: https://registry.terraform.io/modules/terraform-google-modules/project-factory/google
-[terraform-provider-gcp]: https://www.terraform.io/docs/providers/google/index.html
-[terraform]: https://www.terraform.io/downloads.html
 
 ## Security Disclosures
 
