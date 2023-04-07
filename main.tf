@@ -90,7 +90,7 @@ resource "google_clouddeploy_target" "target" {
 module "trigger_service_account" {
   count        = var.cloud_trigger_sa != null ? 1 : 0
   source       = "terraform-google-modules/service-accounts/google"
-  version      = "~> 3.0"
+  version      = "~> 4.0"
   project_id   = var.project
   names        = [var.cloud_trigger_sa]
   display_name = "TF_managed_${var.cloud_trigger_sa}"
@@ -107,7 +107,7 @@ module "trigger_service_account" {
 module "deployment_service_accounts" {
   for_each     = toset(local.target_sa)
   source       = "terraform-google-modules/service-accounts/google"
-  version      = "~> 3.0"
+  version      = "~> 4.0"
   project_id   = element(split("=>", each.value), 0)
   names        = [element(split("=>", each.value), 1)]
   display_name = "TF_managed_${element(split("=>", each.value), 1)}"
@@ -122,7 +122,7 @@ module "default_execution_member_roles" {
   depends_on              = [module.deployment_service_accounts, data.google_project.project]
   for_each                = toset(local.default_execution_sa_binding)
   source                  = "terraform-google-modules/iam/google//modules/member_iam"
-  version                 = "7.4.1"
+  version                 = "7.5"
   service_account_address = "${data.google_project.project.number}-compute@developer.gserviceaccount.com"
   prefix                  = "serviceAccount"
   project_id              = each.value
@@ -133,7 +133,7 @@ module "default_cloud_build_member_roles" {
   depends_on              = [module.deployment_service_accounts, data.google_project.project]
   count                   = var.cloud_trigger_sa == null ? 1 : 0
   source                  = "terraform-google-modules/iam/google//modules/member_iam"
-  version                 = "7.4.1"
+  version                 = "7.5"
   service_account_address = "${data.google_project.project.number}@cloudbuild.gserviceaccount.com"
   prefix                  = "serviceAccount"
   project_id              = var.project
