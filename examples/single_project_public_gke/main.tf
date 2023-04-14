@@ -20,7 +20,7 @@ locals {
 
 module "vpc" {
   source  = "terraform-google-modules/network/google"
-  version = "~> 6.0"
+  version = "~> 7.0"
 
   project_id   = var.pipeline_spec[0].project
   network_name = "dev-vpc"
