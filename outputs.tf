@@ -20,12 +20,12 @@ output "cloud_trigger_sa" {
 }
 
 output "deployment_sa" {
-  value       = [for i in local.target_sa : module.deployment_service_accounts[i].email]
+  value       = [for sa in local.target_sa : module.deployment_service_accounts["${sa.project}=>${sa.exe_sa}"].email]
   description = "List of Deploy target Execution Service Account"
 }
 
 
 output "delivery_pipeline_and_target" {
-  value       = { "google_clouddeploy_delivery_pipeline.delivery_pipeline.id" = flatten([for j in var.stage_targets[*].target : google_clouddeploy_target.target[j].id]) }
+  value       = { "google_clouddeploy_delivery_pipeline.delivery_pipeline.id" = flatten([for target in local.stage_targets : google_clouddeploy_target.target[target.target_name].id]) }
   description = "List of Delivery Pipeline and respective Target"
 }

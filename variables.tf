@@ -16,14 +16,15 @@
 
 variable "stage_targets" {
   type = list(object({
-    target                            = string
+    target_name                       = string
     profiles                          = list(string)
-    gke                               = string
-    gke_cluster_sa                    = list(string)
+    target_create                     = bool
+    target_spec                       = any
     artifact_storage                  = string
     require_approval                  = bool
     execution_configs_service_account = string
     worker_pool                       = string
+    strategy                          = any
   }))
   description = "List of object specifications for Deploy Targets"
 }
@@ -40,10 +41,16 @@ variable "location" {
 
 variable "project" {
   type        = string
-  description = "Project Name"
+  description = "Project ID"
 }
 
 variable "cloud_trigger_sa" {
   type        = string
   description = "Name of the Trigger service account"
+}
+
+variable "trigger_sa_create" {
+  type        = bool
+  description = "True for trigger service account creation, False to reuse existing trigger service account"
+  default     = true
 }
