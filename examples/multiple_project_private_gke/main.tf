@@ -18,17 +18,31 @@ module "cloud_deploy" {
   source        = "../../"
   pipeline_name = "google-pipeline-diff-gke-2-test"
   location      = "us-central1"
-  project       = var.pipeline_spec[0].project
+  project       = "gdc-clouddeploy-source" #var.pipeline_spec[0].project
   stage_targets = [{
-    target                            = "dev-4-test"
-    profiles                          = ["test"]
-    gke                               = var.pipeline_spec[0].stage_targets[0].gke
-    gke_cluster_sa                    = var.pipeline_spec[0].stage_targets[0].gke_cluster_sa
-    artifact_storage                  = null
-    require_approval                  = false
-    execution_configs_service_account = null
-    worker_pool                       = var.pipeline_spec[0].stage_targets[0].worker_pool
-    }, {
+    target_name   = "dev-4-test"
+    profiles      = ["test"]
+    target_create = true
+    target_type   = "gke"
+    target_spec = {
+      project_id       = "gdc-clouddeploy-dev"
+      location         = "us-central1-c"
+      gke_cluster_name = "private-cluster-2"
+      gke_cluster_sa   = "548710651430-compute@developer.gserviceaccount.com"
+    }
+    require_approval   = false
+    exe_config_sa_name = "deployment-gke"
+    execution_config = {
+      worker_pool = "projects/gdc-clouddeploy-source/locations/us-central1/workerPools/worker-pool1"
+    }
+    strategy = {
+      standard = {
+        verify = true
+      }
+    }
+  }]
+  /*
+{
     target                            = "prod-4-test"
     profiles                          = ["prod"]
     gke                               = var.pipeline_spec[0].stage_targets[1].gke
@@ -38,5 +52,8 @@ module "cloud_deploy" {
     execution_configs_service_account = null
     worker_pool                       = var.pipeline_spec[0].stage_targets[1].worker_pool
   }]
-  cloud_trigger_sa = "trigger-sa-4-test"
+
+*/
+
+  trigger_sa_name = "trigger-sa-4-test"
 }

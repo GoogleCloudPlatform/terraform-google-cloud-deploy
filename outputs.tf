@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-output "cloud_trigger_sa" {
+output "trigger_sa" {
   value       = module.trigger_service_account[*].email
   description = "List of Cloud Build Trigger Service Account"
 }

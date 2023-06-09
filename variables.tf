@@ -16,15 +16,15 @@
 
 variable "stage_targets" {
   type = list(object({
-    target_name                       = string
-    profiles                          = list(string)
-    target_create                     = bool
-    target_spec                       = any
-    artifact_storage                  = string
-    require_approval                  = bool
-    execution_configs_service_account = string
-    worker_pool                       = string
-    strategy                          = any
+    target_name        = string
+    profiles           = list(string)
+    target_create      = bool
+    target_type        = string
+    target_spec        = map(string)
+    require_approval   = bool
+    exe_config_sa_name = string
+    execution_config   = map(string)
+    strategy           = any
   }))
   description = "List of object specifications for Deploy Targets"
 }
@@ -44,7 +44,7 @@ variable "project" {
   description = "Project ID"
 }
 
-variable "cloud_trigger_sa" {
+variable "trigger_sa_name" {
   type        = string
   description = "Name of the Trigger service account"
 }

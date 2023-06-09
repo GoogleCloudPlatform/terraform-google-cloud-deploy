@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 locals {
   cluster_name = element(split("/", var.pipeline_spec[0].stage_targets[0].gke), 5)
 }
@@ -101,31 +102,46 @@ data "google_compute_default_service_account" "default" {
   project = var.pipeline_spec[0].project
 }
 
+
+
 module "cloud_deploy" {
   source        = "../../"
   pipeline_name = "google-pipeline-same-gke-1-test"
   location      = var.pipeline_spec[0].location
   project       = var.pipeline_spec[0].project
   stage_targets = [{
-    target                            = "dev-1-test"
-    profiles                          = ["test"]
-    gke                               = "projects/${var.pipeline_spec[0].project}/locations/${var.pipeline_spec[0].location}/clusters/${local.cluster_name}"
-    gke_cluster_sa                    = [data.google_compute_default_service_account.default.email]
-    artifact_storage                  = null
-    require_approval                  = false
-    execution_configs_service_account = null
-    worker_pool                       = null
+    target_name   = "dev-1-test"
+    profiles      = ["test"]
+    target_create = true
+    target_type   = "gke"
+    target_spec = {
+        project_id       = ""
+        location         = ""
+        gke_cluster_name = ""
+        gke_cluster_sa   = ""
+      }
+    require_approval   = false
+    exe_config_sa_name = "deployment-test-1"
+    execution_config   = {}
+    strategy           = {}
     }, {
-    target                            = "prod-1-test"
-    profiles                          = ["prod"]
-    gke                               = "projects/${var.pipeline_spec[0].project}/locations/${var.pipeline_spec[0].location}/clusters/${local.cluster_name}"
-    gke_cluster_sa                    = [data.google_compute_default_service_account.default.email]
-    artifact_storage                  = null
-    require_approval                  = true
-    execution_configs_service_account = "deployment-prod-1-google-test"
-    worker_pool                       = null
+    target_name   = "prod-1-test"
+    profiles      = ["prod"]
+    target_create = true
+    target_type   = "gke"
+    target_spec = {
+        project_id       = ""
+        location         = ""
+        gke_cluster_name = ""
+        gke_cluster_sa   = ""
+      }
+    require_approval   = true
+    exe_config_sa_name = "deployment-prod-1"
+    execution_config   = {}
+    strategy           = {}
   }]
-  cloud_trigger_sa = "trigger-sa-1-test"
+  trigger_sa_name = "trigger-sa-1-test"
+  trigger_sa_create = true
   depends_on       = [module.gke]
 
 }
