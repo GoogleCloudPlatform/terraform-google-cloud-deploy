@@ -123,8 +123,9 @@ module "cloud_deploy_run" {
     target_create = true
     target_type   = "run"
     target_spec = {
-      project_id = "gdc-clouddeploy-source"
-      location   = "us-central1"
+      project_id     = "gdc-clouddeploy-source"
+      location       = "us-central1"
+      run_service_sa = "123142937233-compute@developer.gserviceaccount.com,service-account@gdc-clouddeploy-source.com"
     }
     require_approval   = false
     exe_config_sa_name = "deployment-run-1-google"
@@ -138,10 +139,53 @@ module "cloud_deploy_run" {
     target_create = true
     target_type   = "run"
     target_spec = {
-      project_id = "gdc-clouddeploy-dev"
-      location   = "us-central1"
+      project_id     = "gdc-clouddeploy-dev"
+      location       = "us-central1"
+      run_service_sa = "548710651430-compute@developer.gserviceaccount.com,service-account@gdc-clouddeploy-dev.com"
+    }
+    require_approval   = true
+    exe_config_sa_name = "deployment-run-2-google"
+    execution_config   = {}
+    strategy           = {}
+  }]
+  trigger_sa_name   = "cd-trigger-1"
+  trigger_sa_create = false
+}
+
+
+module "cloud_deploy_run_resuse" {
+  source = "../../"
+
+  pipeline_name = "google-pipeline-same-gke-4"
+  location      = "us-central1"
+  project       = "gdc-clouddeploy-source"
+  stage_targets = [{
+    target_name   = "google-run-1"
+    profiles      = ["run1"]
+    target_create = false
+    target_type   = "run"
+    target_spec = {
+      project_id     = "gdc-clouddeploy-source"
+      location       = "us-central1"
+      run_service_sa = "123142937233-compute@developer.gserviceaccount.com,service-account@gdc-clouddeploy-source.com"
     }
     require_approval   = false
+    exe_config_sa_name = "deployment-run-1-google"
+    execution_config   = {}
+    strategy = {
+      standard = { verify = true }
+    }
+    }, {
+    target_name   = "google-run-2"
+    profiles      = ["run2"]
+    target_create = false
+    target_type   = "run"
+    target_spec = {
+      project_id     = "gdc-clouddeploy-dev"
+      location       = "us-central1"
+      run_service_sa = "548710651430-compute@developer.gserviceaccount.com,service-account@gdc-clouddeploy-dev.com"
+    }
+    require_approval   = true
     exe_config_sa_name = "deployment-run-2-google"
     execution_config   = {}
     strategy           = {}
