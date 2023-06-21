@@ -16,34 +16,52 @@
 
 
 module "multiple_project_public_cluster" {
-
   source = "../../../examples/multiple_project_public_gke"
-  pipeline_spec = [
-    {
-      pipeline_name = "google-pipeline-diff-gke-1-test"
-      location      = "us-central1"
-      project       = var.project_id["ci-cloud-deploy-test"]
-      stage_targets = [{
-        target                            = "dev-3-test"
-        profiles                          = ["test"]
-        gke                               = "projects/${var.project_id["ci-cloud-deploy-test"]}/locations/us-central1-c/clusters/cluster-2"
-        gke_cluster_sa                    = [var.gke_sa[var.project_id["ci-cloud-deploy-test"]]]
-        artifact_storage                  = null
-        require_approval                  = false
-        execution_configs_service_account = null
-        worker_pool                       = null
-        }, {
-        target                            = "prod-3-test"
-        profiles                          = ["prod"]
-        gke                               = "projects/${var.project_id["ci-cloud-deploy-prod"]}/locations/us-central1-c/clusters/cluster-2"
-        gke_cluster_sa                    = [var.gke_sa[var.project_id["ci-cloud-deploy-prod"]]]
-        artifact_storage                  = null
-        require_approval                  = true
-        execution_configs_service_account = null
-        worker_pool                       = null
-      }]
-      cloud_trigger_sa = "trigger-sa-3-test"
-    }
-  ]
 
+  pipeline_name = "google-pipeline-diff-gke-1-test"
+  location      = "us-central1"
+  project       = var.project_id["ci-cloud-deploy-test"]
+  stage_targets = [{
+    target_name   = "dev-3-test"
+    profiles      = ["test"]
+    target_create = true
+    target_type   = "gke"
+    target_spec = {
+      project_id       = var.project_id["ci-cloud-deploy-test"]
+      location         = "us-central1-c"
+      gke_cluster_name = "cluster-2"
+      gke_cluster_sa   = var.gke_sa[var.project_id["ci-cloud-deploy-test"]]
+    }
+    require_approval   = false
+    exe_config_sa_name = "deployment-test-3-google"
+    execution_config = {
+      execution_timeout = "3600s"
+      worker_pool       = null
+      artifact_storage  = ""
+    }
+    strategy = {
+      standard = {
+        verify = true
+      }
+    }
+    }, {
+    target_name   = "prod-3-test"
+    profiles      = ["prod"]
+    target_create = true
+    target_type   = "gke"
+    target_spec = {
+      project_id       = var.project_id["ci-cloud-deploy-prod"]
+      location         = "us-central-1"
+      gke_cluster_name = "cluster-2"
+      gke_cluster_sa   = var.gke_sa[var.project_id["ci-cloud-deploy-prod"]]
+    }
+    require_approval   = true
+    exe_config_sa_name = "deployment-prod-3-google"
+    execution_config   = {}
+    strategy           = {}
+  }]
+  trigger_sa_name   = "trigger-sa-3-test"
+  trigger_sa_create = true
 }
+
+

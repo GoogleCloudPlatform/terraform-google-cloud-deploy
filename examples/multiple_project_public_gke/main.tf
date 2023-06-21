@@ -16,27 +16,48 @@
 
 module "cloud_deploy" {
   source        = "../../"
-  pipeline_name = "google-pipeline-diff-gke-1-test"
-  location      = "us-central1"
-  project       = var.pipeline_spec[0].project
+  pipeline_name = var.pipeline_name
+  location      = var.location
+  project       = var.project
   stage_targets = [{
-    target                            = "dev-3-test"
-    profiles                          = ["test"]
-    gke                               = var.pipeline_spec[0].stage_targets[0].gke
-    gke_cluster_sa                    = var.pipeline_spec[0].stage_targets[0].gke_cluster_sa
-    artifact_storage                  = null
-    require_approval                  = false
-    execution_configs_service_account = null
-    worker_pool                       = null
+    target_name   = "dev-3-test"
+    profiles      = ["test"]
+    target_create = true
+    target_type   = "gke"
+    target_spec = {
+      project_id       = var.stage_targets[0].target_spec.project_id
+      location         = "us-central1-c"
+      gke_cluster_name = "cluster-2"
+      gke_cluster_sa   = var.stage_targets[0].target_spec.gke_cluster_sa
+    }
+    require_approval   = false
+    exe_config_sa_name = "deployment-test-3-google"
+    execution_config = {
+      execution_timeout = "3600s"
+      worker_pool       = null
+      artifact_storage  = ""
+    }
+    strategy = {
+      standard = {
+        verify = true
+      }
+    }
     }, {
-    target                            = "prod-3-test"
-    profiles                          = ["prod"]
-    gke                               = var.pipeline_spec[0].stage_targets[1].gke
-    gke_cluster_sa                    = var.pipeline_spec[0].stage_targets[1].gke_cluster_sa
-    artifact_storage                  = null
-    require_approval                  = true
-    execution_configs_service_account = null
-    worker_pool                       = null
+    target_name   = "prod-3-test"
+    profiles      = ["prod"]
+    target_create = true
+    target_type   = "gke"
+    target_spec = {
+      project_id       = var.stage_targets[1].target_spec.project_id
+      location         = "us-central-1"
+      gke_cluster_name = "cluster-2"
+      gke_cluster_sa   = var.stage_targets[1].target_spec.gke_cluster_sa
+    }
+    require_approval   = true
+    exe_config_sa_name = "deployment-prod-3-google"
+    execution_config   = {}
+    strategy           = {}
   }]
-  cloud_trigger_sa = "trigger-sa-3-test"
+  trigger_sa_name   = var.trigger_sa_name
+  trigger_sa_create = var.trigger_sa_create
 }
