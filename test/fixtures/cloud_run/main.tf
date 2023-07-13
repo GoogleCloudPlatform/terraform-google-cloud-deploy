@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-module "cloud_deploy_run" {
-  source = "../../"
 
-  pipeline_name = var.pipeline_name
-  location      = var.location
-  project       = var.project
+module "cloud_deploy_run" {
+  source = "../../../examples/cloud_run"
+
+  pipeline_name = "google-pipeline-run"
+  location      = "us-central1"
+  project       = var.project_id["ci-cloud-deploy-test"]
   stage_targets = [{
     target_name   = "google-run-1"
     profiles      = ["run1"]
     target_create = true
     target_type   = "run"
     target_spec = {
-      project_id     = var.stage_targets[0].target_spec.project_id
+      project_id     = var.project_id["ci-cloud-deploy-test"]
       location       = "us-central1"
-      run_service_sa = var.stage_targets[0].target_spec.run_service_sa
+      run_service_sa = var.gke_sa[var.project_id["ci-cloud-deploy-test"]]
     }
     require_approval   = false
     exe_config_sa_name = "deployment-run-1-google"
@@ -42,16 +43,17 @@ module "cloud_deploy_run" {
     target_create = true
     target_type   = "run"
     target_spec = {
-      project_id     = var.stage_targets[1].target_spec.project_id
+      project_id     = var.project_id["ci-cloud-deploy-prod"]
       location       = "us-central1"
-      run_service_sa = var.stage_targets[1].target_spec.run_service_sa
+      run_service_sa = var.gke_sa[var.project_id["ci-cloud-deploy-prod"]]
     }
     require_approval   = true
     exe_config_sa_name = "deployment-run-2-google"
     execution_config   = {}
     strategy           = {}
   }]
-  trigger_sa_name   = var.trigger_sa_name
-  trigger_sa_create = var.trigger_sa_create
+  trigger_sa_name   = "run-trigger"
+  trigger_sa_create = true
 }
+
 
