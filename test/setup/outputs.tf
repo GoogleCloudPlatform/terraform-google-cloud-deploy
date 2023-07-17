@@ -21,3 +21,7 @@ output "project_id" {
 output "gke_sa" {
   value = { for i in toset(local.projects) : module.project[i].project_id => data.google_compute_default_service_account.default[i].email }
 }
+
+output "role_binding" {
+  value = [for object in jsondecode(data.google_project_iam_policy.policy.policy_data).bindings : object if object.role == "roles/cloudbuild.serviceAgent" || object.role == "roles/clouddeploy.serviceAgent"]
+}
