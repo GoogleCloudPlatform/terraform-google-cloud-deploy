@@ -97,8 +97,9 @@ resource "google_project_iam_member" "cloudbuild_service_agent_role" {
 }
 
 resource "google_cloudbuild_trigger" "manual-trigger" {
-  name    = "manual-build"
-  project = module.project["ci-cloud-deploy-test"].project_id
+  depends_on = [time_sleep.wait_for_project]
+  name       = "manual-build"
+  project    = module.project["ci-cloud-deploy-test"].project_id
   source_to_build {
     uri       = "https://hashicorp/terraform-provider-google-beta"
     ref       = "refs/heads/main"
@@ -115,8 +116,20 @@ resource "google_cloudbuild_trigger" "manual-trigger" {
 
 }
 
+resource "time_sleep" "wait_for_project" {
+  create_duration = "300s"
+
+  depends_on = [module.project]
+}
+
+resource "time_sleep" "wait_for_cb" {
+  create_duration = "300s"
+
+  depends_on = [google_cloudbuild_trigger.manual-trigger]
+}
+
 
 data "google_project_iam_policy" "policy" {
-  depends_on = [google_cloudbuild_trigger.manual-trigger]
+  depends_on = [time_sleep.wait_for_cb]
   project    = module.project["ci-cloud-deploy-test"].project_id
 }
