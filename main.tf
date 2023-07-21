@@ -86,7 +86,8 @@ resource "google_clouddeploy_target" "target" {
   dynamic "gke" {
     for_each = each.value.target_type == "gke" ? [1] : []
     content {
-      cluster = "projects/${each.value.target_spec.project_id}/locations/${each.value.target_spec.location}/clusters/${each.value.target_spec.gke_cluster_name}"
+      cluster     = "projects/${each.value.target_spec.project_id}/locations/${each.value.target_spec.location}/clusters/${each.value.target_spec.gke_cluster_name}"
+      internal_ip = lookup(each.value.target_spec, "internal_ip", null) != null ? anytrue([each.value.target_spec.internal_ip]) : anytrue([])
     }
   }
 
