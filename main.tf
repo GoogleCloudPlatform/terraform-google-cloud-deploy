@@ -75,6 +75,7 @@ resource "google_clouddeploy_target" "target" {
   name       = each.value.target
   gke {
     cluster = each.value.gke
+    internal_ip = each.value.gke_internal_ip_only = null ? false : each.value.gke_internal_ip_only 
   }
   require_approval = each.value.require_approval
   project          = var.project

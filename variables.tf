@@ -19,6 +19,7 @@ variable "stage_targets" {
     target                            = string
     profiles                          = list(string)
     gke                               = string
+    gke_internal_ip_only              = bool 
     gke_cluster_sa                    = list(string)
     artifact_storage                  = string
     require_approval                  = bool
