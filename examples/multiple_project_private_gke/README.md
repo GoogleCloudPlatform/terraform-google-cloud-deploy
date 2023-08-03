@@ -26,3 +26,20 @@ Private GKE cluster creation in the target project.
 | <a name="output_cloud_deploy_service_account"></a> [cloud\_deploy\_service\_account](#output\_cloud\_deploy\_service\_account) | List of Deploy target Execution Service Account |
 | <a name="output_cloud_trigger_service_account"></a> [cloud\_trigger\_service\_account](#output\_cloud\_trigger\_service\_account) | List of Cloud Build Trigger Service Account |
 | <a name="output_delivery_pipeline_and_target"></a> [delivery\_pipeline\_and\_target](#output\_delivery\_pipeline\_and\_target) | List of Delivery Pipeline and respective Target |
+
+<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| pipeline\_spec | List of object specifications for Delivery Pipeline | <pre>list(object({<br>    pipeline_name = string<br>    location      = string<br>    project       = string<br>    stage_targets = list(object({<br>      target                            = string<br>      profiles                          = list(string)<br>      gke                               = string<br>      gke_cluster_sa                    = list(string)<br>      artifact_storage                  = string<br>      require_approval                  = bool<br>      execution_configs_service_account = string<br>      worker_pool                       = string<br>    }))<br>    cloud_trigger_sa = string<br>  }))</pre> | n/a | yes |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| cloud\_deploy\_service\_account | List of Deploy target Execution Service Account |
+| cloud\_trigger\_service\_account | List of Cloud Build Trigger Service Account |
+| delivery\_pipeline\_and\_target | List of Delivery Pipeline and respective Target |
+
+<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
