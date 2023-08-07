@@ -14,50 +14,44 @@
  * limitations under the License.
  */
 
-module "cloud_deploy" {
-  source        = "../../"
+module "cloud_deploy_run" {
+  source = "../../"
+
   pipeline_name = var.pipeline_name
   location      = var.location
   project       = var.project
   stage_targets = [{
-    target_name   = "dev-3-test"
-    profiles      = ["test"]
+    target_name   = "google-run-1"
+    profiles      = ["run1"]
     target_create = true
-    target_type   = "gke"
+    target_type   = "run"
     target_spec = {
-      project_id       = var.stage_targets[0].target_spec.project_id
-      location         = "us-central1-c"
-      gke_cluster_name = "cluster-2"
-      gke_cluster_sa   = var.stage_targets[0].target_spec.gke_cluster_sa
+      project_id     = var.stage_targets[0].target_spec.project_id
+      location       = "us-central1"
+      run_service_sa = var.stage_targets[0].target_spec.run_service_sa
     }
     require_approval   = false
-    exe_config_sa_name = "deployment-test-3-google"
-    execution_config = {
-      execution_timeout = "3600s"
-      worker_pool       = null
-      artifact_storage  = ""
-    }
+    exe_config_sa_name = "deployment-run-1-google"
+    execution_config   = {}
     strategy = {
-      standard = {
-        verify = true
-      }
+      standard = { verify = true }
     }
     }, {
-    target_name   = "prod-3-test"
-    profiles      = ["prod"]
+    target_name   = "google-run-2"
+    profiles      = ["run2"]
     target_create = true
-    target_type   = "gke"
+    target_type   = "run"
     target_spec = {
-      project_id       = var.stage_targets[1].target_spec.project_id
-      location         = "us-central-1"
-      gke_cluster_name = "cluster-2"
-      gke_cluster_sa   = var.stage_targets[1].target_spec.gke_cluster_sa
+      project_id     = var.stage_targets[1].target_spec.project_id
+      location       = "us-central1"
+      run_service_sa = var.stage_targets[1].target_spec.run_service_sa
     }
     require_approval   = true
-    exe_config_sa_name = "deployment-prod-3-google"
+    exe_config_sa_name = "deployment-run-2-google"
     execution_config   = {}
     strategy           = {}
   }]
   trigger_sa_name   = var.trigger_sa_name
   trigger_sa_create = var.trigger_sa_create
 }
+

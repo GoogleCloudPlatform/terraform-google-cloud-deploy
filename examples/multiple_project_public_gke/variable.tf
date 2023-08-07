@@ -14,23 +14,37 @@
  * limitations under the License.
  */
 
-variable "pipeline_spec" {
-  type = list(object({
-    pipeline_name = string
-    location      = string
-    project       = string
-    stage_targets = list(object({
-      target                            = string
-      profiles                          = list(string)
-      gke                               = string
-      gke_cluster_sa                    = list(string)
-      artifact_storage                  = string
-      require_approval                  = bool
-      execution_configs_service_account = string
-      worker_pool                       = string
-    }))
-    cloud_trigger_sa = string
-  }))
-
-  description = "List of object specifications for Delivery Pipeline"
+variable "pipeline_name" {
+  type = string
 }
+
+variable "location" {
+  type = string
+}
+
+variable "project" {
+  type = string
+}
+
+variable "stage_targets" {
+  type = list(object({
+    target_name        = string
+    profiles           = list(string)
+    target_create      = bool
+    target_type        = string
+    target_spec        = map(string)
+    require_approval   = bool
+    exe_config_sa_name = string
+    execution_config   = map(string)
+    strategy           = any
+  }))
+}
+
+variable "trigger_sa_name" {
+  type = string
+}
+
+variable "trigger_sa_create" {
+  type = bool
+}
+

@@ -15,17 +15,17 @@
  */
 
 output "cloud_trigger_service_account" {
-  value       = [for i in var.pipeline_spec[*].pipeline_name : module.cloud_deploy.cloud_trigger_sa]
+  value       = module.cloud_deploy.trigger_sa
   description = "List of Cloud Build Trigger Service Account"
 }
 
 output "cloud_deploy_service_account" {
-  value       = [for i in var.pipeline_spec[*].pipeline_name : module.cloud_deploy.deployment_sa]
+  value       = module.cloud_deploy.execution_sa
   description = "List of Deploy target Execution Service Account"
 }
 
 output "delivery_pipeline_and_target" {
-  value       = [for i in var.pipeline_spec[*].pipeline_name : module.cloud_deploy.delivery_pipeline_and_target]
+  value       = module.cloud_deploy.delivery_pipeline_and_target
   description = "List of Delivery Pipeline and respective Target"
 }
 

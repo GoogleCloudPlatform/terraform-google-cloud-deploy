@@ -14,37 +14,11 @@
  * limitations under the License.
  */
 
-variable "pipeline_name" {
-  type = string
+variable "project_id" {
+  type = any
 }
 
-variable "location" {
-  type = string
-}
 
-variable "project" {
-  type = string
+variable "gke_sa" {
+  type = any
 }
-
-variable "stage_targets" {
-  type = list(object({
-    target_name        = string
-    profiles           = list(string)
-    target_create      = bool
-    target_type        = string
-    target_spec        = map(string)
-    require_approval   = bool
-    exe_config_sa_name = string
-    execution_config   = map(string)
-    strategy           = any
-  }))
-}
-
-variable "trigger_sa_name" {
-  type = string
-}
-
-variable "trigger_sa_create" {
-  type = bool
-}
-

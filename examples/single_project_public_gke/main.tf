@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
+
 locals {
-  cluster_name = element(split("/", var.pipeline_spec[0].stage_targets[0].gke), 5)
+  cluster_name = "cluster-2"
 }
 
 module "vpc" {
   source  = "terraform-google-modules/network/google"
   version = "~> 7.0"
 
-  project_id   = var.pipeline_spec[0].project
+  project_id   = var.project
   network_name = "dev-vpc"
   routing_mode = "GLOBAL"
 
@@ -30,7 +31,7 @@ module "vpc" {
     {
       subnet_name           = "subnet-01"
       subnet_ip             = "10.244.252.0/22"
-      subnet_region         = var.pipeline_spec[0].location
+      subnet_region         = var.location
       subnet_private_access = "true"
       subnet_flow_logs      = "true"
       description           = "This subnet has a description"
@@ -63,7 +64,7 @@ provider "kubernetes" {
 module "gke" {
   version                    = "25.0.0"
   source                     = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
-  project_id                 = var.pipeline_spec[0].project
+  project_id                 = var.project
   name                       = local.cluster_name
   region                     = "us-central1"
   zones                      = ["us-central1-b", "us-central1-c"]
@@ -97,35 +98,55 @@ module "gke" {
   }, ]
 }
 
-data "google_compute_default_service_account" "default" {
-  project = var.pipeline_spec[0].project
-}
+
+
 
 module "cloud_deploy" {
   source        = "../../"
-  pipeline_name = "google-pipeline-same-gke-1-test"
-  location      = var.pipeline_spec[0].location
-  project       = var.pipeline_spec[0].project
+  pipeline_name = var.pipeline_name
+  location      = var.location
+  project       = var.project
   stage_targets = [{
-    target                            = "dev-1-test"
-    profiles                          = ["test"]
-    gke                               = "projects/${var.pipeline_spec[0].project}/locations/${var.pipeline_spec[0].location}/clusters/${local.cluster_name}"
-    gke_cluster_sa                    = [data.google_compute_default_service_account.default.email]
-    artifact_storage                  = null
-    require_approval                  = false
-    execution_configs_service_account = null
-    worker_pool                       = null
+    target_name   = "dev-1-test"
+    profiles      = ["test"]
+    target_create = true
+    target_type   = "gke"
+    target_spec = {
+      project_id       = var.stage_targets[0].target_spec.project_id
+      location         = "us-central1-c"
+      gke_cluster_name = "cluster-2"
+      gke_cluster_sa   = var.stage_targets[0].target_spec.gke_cluster_sa
+    }
+    require_approval   = false
+    exe_config_sa_name = "deployment-test-1-google"
+    execution_config = {
+      execution_timeout = "3600s"
+      worker_pool       = null
+      artifact_storage  = ""
+    }
+    strategy = {
+      standard = {
+        verify = true
+      }
+    }
     }, {
-    target                            = "prod-1-test"
-    profiles                          = ["prod"]
-    gke                               = "projects/${var.pipeline_spec[0].project}/locations/${var.pipeline_spec[0].location}/clusters/${local.cluster_name}"
-    gke_cluster_sa                    = [data.google_compute_default_service_account.default.email]
-    artifact_storage                  = null
-    require_approval                  = true
-    execution_configs_service_account = "deployment-prod-1-google-test"
-    worker_pool                       = null
+    target_name   = "prod-1-test"
+    profiles      = ["prod"]
+    target_create = true
+    target_type   = "gke"
+    target_spec = {
+      project_id       = var.stage_targets[1].target_spec.project_id
+      location         = "us-central1-c"
+      gke_cluster_name = "cluster-2"
+      gke_cluster_sa   = var.stage_targets[1].target_spec.gke_cluster_sa
+    }
+    require_approval   = true
+    exe_config_sa_name = "deployment-prod-1-google"
+    execution_config   = {}
+    strategy           = {}
   }]
-  cloud_trigger_sa = "trigger-sa-1-test"
-  depends_on       = [module.gke]
+  trigger_sa_name   = var.trigger_sa_name
+  trigger_sa_create = var.trigger_sa_create
+  depends_on        = [module.gke]
 
 }

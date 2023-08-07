@@ -14,37 +14,18 @@
  * limitations under the License.
  */
 
-variable "pipeline_name" {
-  type = string
+output "cloud_trigger_service_account" {
+  value       = module.cloud_deploy_run.trigger_sa
+  description = "List of Cloud Build Trigger Service Account"
 }
 
-variable "location" {
-  type = string
+output "cloud_deploy_service_account" {
+  value       = module.cloud_deploy_run.execution_sa
+  description = "List of Deploy target Execution Service Account"
 }
 
-variable "project" {
-  type = string
-}
-
-variable "stage_targets" {
-  type = list(object({
-    target_name        = string
-    profiles           = list(string)
-    target_create      = bool
-    target_type        = string
-    target_spec        = map(string)
-    require_approval   = bool
-    exe_config_sa_name = string
-    execution_config   = map(string)
-    strategy           = any
-  }))
-}
-
-variable "trigger_sa_name" {
-  type = string
-}
-
-variable "trigger_sa_create" {
-  type = bool
+output "delivery_pipeline_and_target" {
+  value       = module.cloud_deploy_run.delivery_pipeline_and_target
+  description = "List of Delivery Pipeline and respective Target"
 }
 

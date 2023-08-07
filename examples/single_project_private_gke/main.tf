@@ -16,27 +16,50 @@
 
 module "cloud_deploy" {
   source        = "../../"
-  pipeline_name = "google-pipeline-same-gke-2-test"
-  location      = "us-central1"
-  project       = var.pipeline_spec[0].project
+  pipeline_name = var.pipeline_name
+  location      = var.location
+  project       = var.project
   stage_targets = [{
-    target                            = "dev-2-test"
-    profiles                          = ["test"]
-    gke                               = var.pipeline_spec[0].stage_targets[0].gke
-    gke_cluster_sa                    = var.pipeline_spec[0].stage_targets[0].gke_cluster_sa
-    artifact_storage                  = null
-    require_approval                  = false
-    execution_configs_service_account = null
-    worker_pool                       = var.pipeline_spec[0].stage_targets[0].worker_pool
+    target_name   = "dev-2-test"
+    profiles      = ["test"]
+    target_create = true
+    target_type   = "gke"
+    target_spec = {
+      project_id       = var.stage_targets[0].target_spec.project_id
+      location         = "us-central1-c"
+      gke_cluster_name = "cluster-2"
+      gke_cluster_sa   = var.stage_targets[0].target_spec.gke_cluster_sa
+    }
+    require_approval   = false
+    exe_config_sa_name = "deployment-test-2-google"
+    execution_config = {
+      execution_timeout = "3600s"
+      worker_pool       = "projects/${var.stage_targets[0].target_spec.project_id}/locations/us-central1/workerPools/worker-pool"
+      artifact_storage  = ""
+    }
+    strategy = {
+      standard = {
+        verify = true
+      }
+    }
     }, {
-    target                            = "prod-2-test"
-    profiles                          = ["prod"]
-    gke                               = var.pipeline_spec[0].stage_targets[1].gke
-    gke_cluster_sa                    = var.pipeline_spec[0].stage_targets[1].gke_cluster_sa
-    artifact_storage                  = null
-    require_approval                  = true
-    execution_configs_service_account = "deployment-prod-2-google-test"
-    worker_pool                       = var.pipeline_spec[0].stage_targets[1].worker_pool
+    target_name   = "prod-2-test"
+    profiles      = ["prod"]
+    target_create = true
+    target_type   = "gke"
+    target_spec = {
+      project_id       = var.stage_targets[1].target_spec.project_id
+      location         = "us-central1-c"
+      gke_cluster_name = "cluster-2"
+      gke_cluster_sa   = var.stage_targets[1].target_spec.gke_cluster_sa
+    }
+    require_approval   = false
+    exe_config_sa_name = "deployment-prod-2-google"
+    execution_config = {
+      worker_pool = "projects/${var.stage_targets[1].target_spec.project_id}/locations/us-central1/workerPools/worker-pool"
+    }
+    strategy = {}
   }]
-  cloud_trigger_sa = "trigger-sa-2-test"
+  trigger_sa_name   = var.trigger_sa_name
+  trigger_sa_create = var.trigger_sa_create
 }

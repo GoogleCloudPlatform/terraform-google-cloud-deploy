@@ -45,6 +45,7 @@ module "project" {
     "artifactregistry.googleapis.com",
     "container.googleapis.com",
     "servicenetworking.googleapis.com",
+    "run.googleapis.com",
   ]
   activate_api_identities = [
     {
@@ -55,7 +56,10 @@ module "project" {
         "roles/cloudbuild.builds.builder",
         "roles/source.writer",
       ]
-    },
+      }, {
+      api   = "run.googleapis.com"
+      roles = ["roles/run.serviceAgent"]
+    }
   ]
 }
 
@@ -92,3 +96,24 @@ resource "google_project_iam_member" "cloudbuild_service_agent_role" {
   member  = "serviceAccount:${google_project_service_identity.cloudbuild_service_agent.email}"
 }
 
+module "gcloud" {
+  source                = "terraform-google-modules/gcloud/google"
+  version               = "~> 3.1.0"
+  module_depends_on     = [module.project]
+  platform              = "linux"
+  create_cmd_entrypoint = "gcloud"
+  create_cmd_body       = "builds submit . --tag=gcr.io/${module.project["ci-cloud-deploy-test"].project_id}/tfimage:v1.0 --project ${module.project["ci-cloud-deploy-test"].project_id}"
+}
+
+
+resource "time_sleep" "wait_for_cb" {
+  create_duration = "300s"
+
+  depends_on = [module.gcloud]
+}
+
+
+data "google_project_iam_policy" "policy" {
+  depends_on = [time_sleep.wait_for_cb]
+  project    = module.project["ci-cloud-deploy-test"].project_id
+}

@@ -15,35 +15,53 @@
  */
 
 
+
+
 module "single_project_public_cluster" {
-
-  source = "../../../examples/single_project_public_gke"
-  pipeline_spec = [
-    {
-      pipeline_name = "google-pipeline-same-gke-1-test"
-      location      = "us-central1"
-      project       = var.project_id["ci-cloud-deploy-test"]
-      stage_targets = [{
-        target                            = "dev-1-test"
-        profiles                          = ["test"]
-        gke                               = "projects/${var.project_id["ci-cloud-deploy-test"]}/locations/us-central1-c/clusters/cluster-2"
-        gke_cluster_sa                    = [var.gke_sa[var.project_id["ci-cloud-deploy-test"]]]
-        artifact_storage                  = null
-        require_approval                  = false
-        execution_configs_service_account = null
-        worker_pool                       = null
-        }, {
-        target                            = "prod-1-test"
-        profiles                          = ["prod"]
-        gke                               = "projects/${var.project_id["ci-cloud-deploy-test"]}/locations/us-central1-c/clusters/cluster-2"
-        gke_cluster_sa                    = [var.gke_sa[var.project_id["ci-cloud-deploy-test"]]]
-        artifact_storage                  = null
-        require_approval                  = true
-        execution_configs_service_account = "deployment-prod-1-google-test"
-        worker_pool                       = null
-      }]
-      cloud_trigger_sa = "trigger-sa-1-test"
+  source        = "../../../examples/single_project_public_gke"
+  pipeline_name = "google-pipeline-same-gke-1-test"
+  location      = "us-central1"
+  project       = var.project_id["ci-cloud-deploy-test"]
+  stage_targets = [{
+    target_name   = "dev-1-test"
+    profiles      = ["test"]
+    target_create = true
+    target_type   = "gke"
+    target_spec = {
+      project_id       = var.project_id["ci-cloud-deploy-test"]
+      location         = "us-central1-c"
+      gke_cluster_name = "cluster-2"
+      gke_cluster_sa   = var.gke_sa[var.project_id["ci-cloud-deploy-test"]]
     }
-  ]
-
+    require_approval   = false
+    exe_config_sa_name = "deployment-test-1-google"
+    execution_config = {
+      execution_timeout = "3600s"
+      worker_pool       = null
+      artifact_storage  = ""
+    }
+    strategy = {
+      standard = {
+        verify = true
+      }
+    }
+    }, {
+    target_name   = "prod-1-test"
+    profiles      = ["prod"]
+    target_create = true
+    target_type   = "gke"
+    target_spec = {
+      project_id       = var.project_id["ci-cloud-deploy-test"]
+      location         = "us-central1-c"
+      gke_cluster_name = "cluster-2"
+      gke_cluster_sa   = var.gke_sa[var.project_id["ci-cloud-deploy-test"]]
+    }
+    require_approval   = true
+    exe_config_sa_name = "deployment-prod-1-google"
+    execution_config   = {}
+    strategy           = {}
+  }]
+  trigger_sa_name   = "trigger-sa-1-test"
+  trigger_sa_create = true
 }
+

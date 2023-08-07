@@ -20,32 +20,53 @@ The service accounts and targets are unique across delivery pipeline.
 
 ```hcl
 module "cloud_deploy" {
-    source = "terraform-google-modules/cloud-deploy/google"
-
-    pipeline_name                = "google-pipeline-same-gke-1"
-    location                     = "us-central1"
-    project                      = "gdc-clouddeploy-source"
-    stage_targets = [{
-      target                            = "google-test-1"
-      profiles                          = ["test"]
-      gke                               = "projects/gdc-clouddeploy-source/locations/us-central1-c/clusters/cluster-1"
-      gke_cluster_sa                    = ["14346266701-compute@developer.gserviceaccount.com"]
-      artifact_storage                  = null
-      require_approval                  = false
-      execution_configs_service_account = "deployment-test-1-google"
-      worker_pool                       = null
-      }, {
-      target                            = "google-prod-1"
-      profiles                          = ["prod"]
-      gke                               = "projects/gdc-clouddeploy-source/locations/us-central1-c/clusters/cluster-1"
-      gke_cluster_sa                    = ["14346266701-compute@developer.gserviceaccount.com"]
-      artifact_storage                  = null
-      require_approval                  = true
-      execution_configs_service_account = "deployment-prod-1-google"
-      worker_pool                       = null
-    }]
-    cloud_trigger_sa = "cd-trigger-1"
+  source = "terraform-google-modules/cloud-deploy/google"
+  pipeline_name = "google-pipeline-same-gke-1"
+  location      = "us-central1"
+  project       = "gdc-clouddeploy-source"
+  stage_targets = [{
+    target_name   = "dev-1-test"
+    profiles      = ["test"]
+    target_create = true
+    target_type   = "gke"
+    target_spec = {
+      project_id       = "gdc-clouddeploy-source"
+      location         = "us-central1-c"
+      gke_cluster_name = "cluster-2"
+      gke_cluster_sa   = "14346266701-compute@developer.gserviceaccount.com"
+    }
+    require_approval   = false
+    exe_config_sa_name = "deployment-test-1-google-test"
+    execution_config = {
+      execution_timeout = "3600s"
+      worker_pool       = null
+      artifact_storage  = ""
+    }
+    strategy = {
+      standard = {
+        verify = true
+      }
+    }
+    }, {
+    target_name   = "prod-1-test"
+    profiles      = ["prod"]
+    target_create = true
+    target_type   = "gke"
+    target_spec = {
+      project_id       = "gdc-clouddeploy-source"
+      location         = "us-central1-c"
+      gke_cluster_name = "cluster-2"
+      gke_cluster_sa   = "14346266701-compute@developer.gserviceaccount.com"
+     }
+    require_approval   = true
+    exe_config_sa_name = "deployment-prod-1-google-test"
+    execution_config   = {}
+    strategy           = {}
+  }]
+  trigger_sa_name   = "cd-trigger-1"
+  trigger_sa_create = true
 }
+
 ```
 
 
@@ -55,19 +76,20 @@ module "cloud_deploy" {
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| cloud\_trigger\_sa | Name of the Trigger service account | `string` | n/a | yes |
 | location | Location of the Pipeline | `string` | n/a | yes |
 | pipeline\_name | Name of the Delivery Pipeline | `string` | n/a | yes |
-| project | Project Name | `string` | n/a | yes |
-| stage\_targets | List of object specifications for Deploy Targets | <pre>list(object({<br>    target                            = string<br>    profiles                          = list(string)<br>    gke                               = string<br>    gke_cluster_sa                    = list(string)<br>    artifact_storage                  = string<br>    require_approval                  = bool<br>    execution_configs_service_account = string<br>    worker_pool                       = string<br>  }))</pre> | n/a | yes |
+| project | Project ID | `string` | n/a | yes |
+| stage\_targets | List of object specifications for Deploy Targets | <pre>list(object({<br>    target_name        = string<br>    profiles           = list(string)<br>    target_create      = bool<br>    target_type        = string<br>    target_spec        = map(string)<br>    require_approval   = bool<br>    exe_config_sa_name = string<br>    execution_config   = map(string)<br>    strategy           = any<br>  }))</pre> | n/a | yes |
+| trigger\_sa\_create | True for trigger service account creation, False to reuse existing trigger service account | `bool` | `true` | no |
+| trigger\_sa\_name | Name of the Trigger service account | `string` | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| cloud\_trigger\_sa | List of Cloud Build Trigger Service Account |
 | delivery\_pipeline\_and\_target | List of Delivery Pipeline and respective Target |
-| deployment\_sa | List of Deploy target Execution Service Account |
+| execution\_sa | List of Deploy target Execution Service Account |
+| trigger\_sa | List of Cloud Build Trigger Service Account |
 
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 
