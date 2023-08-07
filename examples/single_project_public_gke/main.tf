@@ -118,7 +118,7 @@ module "cloud_deploy" {
       gke_cluster_sa   = var.stage_targets[0].target_spec.gke_cluster_sa
     }
     require_approval   = false
-    exe_config_sa_name = "deployment-prod-1-google-test"
+    exe_config_sa_name = "deployment-test-1-google"
     execution_config = {
       execution_timeout = "3600s"
       worker_pool       = null
@@ -141,7 +141,7 @@ module "cloud_deploy" {
       gke_cluster_sa   = var.stage_targets[1].target_spec.gke_cluster_sa
     }
     require_approval   = true
-    exe_config_sa_name = "deployment-prod-1-google-test"
+    exe_config_sa_name = "deployment-prod-1-google"
     execution_config   = {}
     strategy           = {}
   }]

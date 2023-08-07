@@ -15,37 +15,51 @@
  */
 
 
+#to get the pipeline project number
 
-data "google_project" "project" {
-  for_each   = toset(distinct(concat([for project in local.target_sa_run : project.project], [var.project])))
+data "google_project" "pipeline_project" {
+  project_id = var.project
+}
+
+#to get the cloud run service target project number
+
+data "google_project" "cloud_run_project" {
+  for_each   = toset(distinct([for project in local.tmp_list_target_sa_run : project.project]))
   project_id = each.value
 }
 
 locals {
 
-  tmp_list_target_sa_gke = [for target in var.stage_targets : target.target_create && target.target_type == "gke" ? { project = target.target_spec.project_id, exe_sa = target.exe_config_sa_name } : {}]
+  tmp_list_target_sa_gke = [for target in var.stage_targets : {
+    project = target.target_spec.project_id
+    exe_sa  = target.exe_config_sa_name
+  type = "gke" } if target.target_create && target.target_type == "gke"]
 
-  target_sa_gke = setsubtract(distinct(local.tmp_list_target_sa_gke), [{}])
+  tmp_list_target_sa_run = [for target in var.stage_targets : {
+    project = target.target_spec.project_id
+    exe_sa  = target.exe_config_sa_name
+  type = "run" } if target.target_create && target.target_type == "run"]
 
-  tmp_list_target_sa_run = [for target in var.stage_targets : target.target_create && target.target_type == "run" ? { project = target.target_spec.project_id, exe_sa = target.exe_config_sa_name } : {}]
 
-  target_sa_run = setsubtract(distinct(local.tmp_list_target_sa_run), [{}])
+  #service account created for both gke and run target
 
-  extract_target_sa_gke = [for sa in setsubtract(local.target_sa_gke, local.target_sa_run) : { project = sa.project, exe_sa = sa.exe_sa, type = "gke" }]
+  target_sa = concat(local.tmp_list_target_sa_gke, local.tmp_list_target_sa_run)
 
-  extract_target_sa_run = [for sa in setsubtract(local.target_sa_run, local.target_sa_gke) : { project = sa.project, exe_sa = sa.exe_sa, type = "run" }]
-
-  intersected_target_sa = [for sa in setintersection(local.target_sa_gke, local.target_sa_run) : { project = sa.project, exe_sa = sa.exe_sa, type = "both" }]
-
-  target_sa = concat(local.extract_target_sa_gke, local.extract_target_sa_run, local.intersected_target_sa)
+  #assigning actaspermission for execution service account towards cloud run service accounts
 
   exe_sa_actas_run_svc_sa = setsubtract(distinct(flatten([for target in var.stage_targets : target.target_create && target.target_type == "run" ? contains(keys(target.target_spec), "run_service_sa") ? [for sa in compact(split(",", target.target_spec.run_service_sa)) : { project = target.target_spec.project_id, exe_sa = target.exe_config_sa_name, run_sa = sa }] : [{}] : [{}]])), [{}])
 
   tmp_list_gke_cluster_sa = [for target in var.stage_targets : target.target_create && target.target_type == "gke" ? [for gke_sa in split(",", target.target_spec.gke_cluster_sa) : gke_sa] : [""]]
 
+  #assigning storage role to gke service accounts
+
   gke_cluster_sa = compact(distinct(flatten(local.tmp_list_gke_cluster_sa)))
 
-  tri_sa_actas_exe_sa = setsubtract(distinct([for target in var.stage_targets : target.target_type == "gke" ? { project = target.target_spec.project_id, exe_sa = target.exe_config_sa_name } : target.target_type == "run" ? { project = target.target_spec.project_id, exe_sa = target.exe_config_sa_name } : {}]), [{}])
+  #assigning actaspermission for trigger service account towards execution service account
+
+  tri_sa_actas_exe_sa = setsubtract([for target in var.stage_targets : target.target_type == "gke" ? { project = target.target_spec.project_id, exe_sa = target.exe_config_sa_name } : target.target_type == "run" ? { project = target.target_spec.project_id, exe_sa = target.exe_config_sa_name } : {}], [{}])
+
+  #service agent binding for cross project service account usage
 
   service_agent_binding = setsubtract([for agent_bind in local.target_sa : agent_bind.project != var.project ? agent_bind : {}], [{}])
 
@@ -54,8 +68,10 @@ locals {
 }
 
 
+#create cloud deploy pipeline
+
 resource "google_clouddeploy_delivery_pipeline" "delivery_pipeline" {
-  depends_on = [module.trigger_service_account, module.deployment_service_accounts]
+  depends_on = [module.trigger_service_account, module.execution_service_accounts]
   location   = var.location
   name       = var.pipeline_name
   project    = var.project
@@ -78,8 +94,10 @@ resource "google_clouddeploy_delivery_pipeline" "delivery_pipeline" {
   }
 }
 
+#create cloud deploy targets
+
 resource "google_clouddeploy_target" "target" {
-  depends_on = [module.trigger_service_account, module.deployment_service_accounts]
+  depends_on = [module.trigger_service_account, module.execution_service_accounts]
   for_each   = { for target in local.stage_targets : target.target_name => target }
   location   = var.location
   name       = each.value.target_name
@@ -108,6 +126,9 @@ resource "google_clouddeploy_target" "target" {
   }
 }
 
+
+#create trigger service account
+
 module "trigger_service_account" {
   count        = var.trigger_sa_create ? 1 : 0
   source       = "terraform-google-modules/service-accounts/google"
@@ -126,64 +147,71 @@ module "trigger_service_account" {
 }
 
 
-module "deployment_service_accounts" {
+#create execution service account
+
+module "execution_service_accounts" {
   for_each      = { for i in local.target_sa : "${i.project}=>${i.exe_sa}" => i }
   source        = "terraform-google-modules/service-accounts/google"
   version       = "~> 4.0"
   project_id    = each.value.project
   names         = [each.value.exe_sa]
   display_name  = "TF_managed_${each.value.exe_sa}"
-  project_roles = each.value.type == "gke" ? ["${each.value.project}=>roles/container.developer", "${var.project}=>roles/storage.objectAdmin", "${var.project}=>roles/artifactregistry.reader", "${var.project}=>roles/logging.logWriter", "${each.value.project}=>roles/logging.logWriter"] : each.value.type == "run" ? ["${each.value.project}=>roles/run.developer", "${var.project}=>roles/storage.objectAdmin", "${var.project}=>roles/artifactregistry.reader", "${var.project}=>roles/logging.logWriter", "${each.value.project}=>roles/logging.logWriter"] : ["${each.value.project}=>roles/run.developer", "${each.value.project}=>roles/container.developer", "${var.project}=>roles/storage.objectAdmin", "${var.project}=>roles/artifactregistry.reader", "${var.project}=>roles/logging.logWriter", "${each.value.project}=>roles/logging.logWriter"]
+  project_roles = each.value.type == "gke" ? ["${each.value.project}=>roles/container.developer", "${var.project}=>roles/storage.objectAdmin", "${var.project}=>roles/artifactregistry.reader", "${var.project}=>roles/logging.logWriter", "${each.value.project}=>roles/logging.logWriter"] : each.value.type == "run" ? ["${each.value.project}=>roles/run.developer", "${var.project}=>roles/storage.objectAdmin", "${var.project}=>roles/artifactregistry.reader", "${var.project}=>roles/logging.logWriter", "${each.value.project}=>roles/logging.logWriter"] : []
 }
 
+#assigning actaspermission for trigger service account towards execution service account
 
 resource "google_service_account_iam_member" "tri_sa_actas_exe_sa" {
-  depends_on         = [module.deployment_service_accounts, module.trigger_service_account]
+  depends_on         = [module.execution_service_accounts, module.trigger_service_account]
   for_each           = { for i in local.tri_sa_actas_exe_sa : "${i.project}=>${i.exe_sa}" => i }
   service_account_id = "projects/${each.value.project}/serviceAccounts/${each.value.exe_sa}@${each.value.project}.iam.gserviceaccount.com"
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${var.trigger_sa_name}@${var.project}.iam.gserviceaccount.com"
 }
 
+#assigning actaspermission for execution service account towards cloud run service accounts
 
 resource "google_service_account_iam_member" "exe_sa_actas_run_svc_sa" {
-  depends_on         = [module.deployment_service_accounts, module.trigger_service_account]
+  depends_on         = [module.execution_service_accounts, module.trigger_service_account]
   for_each           = { for i in local.exe_sa_actas_run_svc_sa : "${i.exe_sa}=>${i.project}=>${i.run_sa}" => i }
   service_account_id = "projects/${each.value.project}/serviceAccounts/${each.value.run_sa}"
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${each.value.exe_sa}@${each.value.project}.iam.gserviceaccount.com"
 }
 
+#assigning actaspermission for execution service account towards itself. incase exe sa is used to create cloud run service
+
 resource "google_service_account_iam_member" "exe_sa_actas_exe_sa" {
-  depends_on         = [module.deployment_service_accounts]
-  for_each           = { for i in local.target_sa_run : "${i.exe_sa}=>${i.project}" => i }
+  depends_on         = [module.execution_service_accounts]
+  for_each           = { for i in local.tmp_list_target_sa_run : "${i.exe_sa}=>${i.project}" => i }
   service_account_id = "projects/${each.value.project}/serviceAccounts/${each.value.exe_sa}@${each.value.project}.iam.gserviceaccount.com"
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${each.value.exe_sa}@${each.value.project}.iam.gserviceaccount.com"
 }
 
+#service agent binding for cross project service account usage. https://cloud.google.com/deploy/docs/cloud-deploy-service-account
 
 resource "google_service_account_iam_member" "cloud_build_service_agent_actas_deploy_sa" {
-  depends_on         = [module.deployment_service_accounts, module.trigger_service_account, data.google_project.project]
+  depends_on         = [module.execution_service_accounts, module.trigger_service_account, data.google_project.pipeline_project]
   for_each           = { for i in local.service_agent_binding : "${i.project}=>${i.exe_sa}" => i }
   service_account_id = "projects/${each.value.project}/serviceAccounts/${each.value.exe_sa}@${each.value.project}.iam.gserviceaccount.com"
   role               = "roles/iam.serviceAccountTokenCreator"
-  member             = "serviceAccount:service-${data.google_project.project[var.project].number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
+  member             = "serviceAccount:service-${data.google_project.pipeline_project.number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
 }
 
 resource "google_service_account_iam_member" "cloud_deploy_service_agent_actas_deploy_sa" {
-  depends_on         = [module.deployment_service_accounts, module.trigger_service_account, data.google_project.project]
+  depends_on         = [module.execution_service_accounts, module.trigger_service_account, data.google_project.pipeline_project]
   for_each           = { for i in local.service_agent_binding : "${i.project}=>${i.exe_sa}" => i }
   service_account_id = "projects/${each.value.project}/serviceAccounts/${each.value.exe_sa}@${each.value.project}.iam.gserviceaccount.com"
   role               = "roles/iam.serviceAccountUser"
-  member             = "serviceAccount:service-${data.google_project.project[var.project].number}@gcp-sa-clouddeploy.iam.gserviceaccount.com"
+  member             = "serviceAccount:service-${data.google_project.pipeline_project.number}@gcp-sa-clouddeploy.iam.gserviceaccount.com"
 }
 
 resource "google_project_iam_member" "cloud_run_service_agent_binding_storage_viewer" {
-  for_each = toset(distinct(setsubtract([for i in local.target_sa_run : i.project], [var.project])))
+  for_each = toset(distinct(setsubtract([for i in local.tmp_list_target_sa_run : i.project], [var.project])))
   project  = var.project
   role     = "roles/storage.objectViewer"
-  member   = "serviceAccount:service-${data.google_project.project[each.value].number}@serverless-robot-prod.iam.gserviceaccount.com"
+  member   = "serviceAccount:service-${data.google_project.cloud_run_project[each.value].number}@serverless-robot-prod.iam.gserviceaccount.com"
 }
 
 resource "google_project_iam_member" "gke_cluster_sa_to_storage_viewer" {
@@ -195,10 +223,10 @@ resource "google_project_iam_member" "gke_cluster_sa_to_storage_viewer" {
 }
 
 resource "google_project_iam_member" "cloud_run_service_agent_binding_artifact_reader" {
-  for_each = toset(distinct(setsubtract([for i in local.target_sa_run : i.project], [var.project])))
+  for_each = toset(distinct(setsubtract([for i in local.tmp_list_target_sa_run : i.project], [var.project])))
   project  = var.project
   role     = "roles/artifactregistry.reader"
-  member   = "serviceAccount:service-${data.google_project.project[each.value].number}@serverless-robot-prod.iam.gserviceaccount.com"
+  member   = "serviceAccount:service-${data.google_project.cloud_run_project[each.value].number}@serverless-robot-prod.iam.gserviceaccount.com"
 }
 
 resource "google_project_iam_member" "gke_cluster_sa_to_artifact_reader" {
@@ -208,5 +236,3 @@ resource "google_project_iam_member" "gke_cluster_sa_to_artifact_reader" {
   member   = "serviceAccount:${each.value}"
 
 }
-
-

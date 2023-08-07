@@ -20,7 +20,7 @@ output "trigger_sa" {
 }
 
 output "execution_sa" {
-  value       = [for sa in local.target_sa : module.deployment_service_accounts["${sa.project}=>${sa.exe_sa}"].email]
+  value       = [for sa in local.target_sa : module.execution_service_accounts["${sa.project}=>${sa.exe_sa}"].email]
   description = "List of Deploy target Execution Service Account"
 }
 

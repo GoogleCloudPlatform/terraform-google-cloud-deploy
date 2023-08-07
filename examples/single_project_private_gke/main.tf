@@ -31,7 +31,7 @@ module "cloud_deploy" {
       gke_cluster_sa   = var.stage_targets[0].target_spec.gke_cluster_sa
     }
     require_approval   = false
-    exe_config_sa_name = "deployment-prod-2-google-test"
+    exe_config_sa_name = "deployment-test-2-google"
     execution_config = {
       execution_timeout = "3600s"
       worker_pool       = "projects/${var.stage_targets[0].target_spec.project_id}/locations/us-central1/workerPools/worker-pool"
@@ -54,7 +54,7 @@ module "cloud_deploy" {
       gke_cluster_sa   = var.stage_targets[1].target_spec.gke_cluster_sa
     }
     require_approval   = false
-    exe_config_sa_name = "deployment-prod-2-google-test"
+    exe_config_sa_name = "deployment-prod-2-google"
     execution_config = {
       worker_pool = "projects/${var.stage_targets[1].target_spec.project_id}/locations/us-central1/workerPools/worker-pool"
     }

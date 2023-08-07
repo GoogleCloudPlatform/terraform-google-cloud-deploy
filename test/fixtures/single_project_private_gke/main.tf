@@ -32,7 +32,7 @@ module "single_project_private_cluster" {
       gke_cluster_sa   = var.gke_sa[var.project_id["ci-cloud-deploy-test"]]
     }
     require_approval   = false
-    exe_config_sa_name = "deployment-prod-2-google-test"
+    exe_config_sa_name = "deployment-test-2-google"
     execution_config = {
       execution_timeout = "3600s"
       worker_pool       = "projects/${var.project_id["ci-cloud-deploy-test"]}/locations/us-central1/workerPools/worker-pool"
@@ -55,7 +55,7 @@ module "single_project_private_cluster" {
       gke_cluster_sa   = var.gke_sa[var.project_id["ci-cloud-deploy-test"]]
     }
     require_approval   = false
-    exe_config_sa_name = "deployment-prod-2-google-test"
+    exe_config_sa_name = "deployment-prod-2-google"
     execution_config = {
       worker_pool = "projects/${var.project_id["ci-cloud-deploy-test"]}/locations/us-central1/workerPools/worker-pool"
     }

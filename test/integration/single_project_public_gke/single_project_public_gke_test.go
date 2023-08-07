@@ -30,7 +30,7 @@ func TestSingleProjectPublicGKE(t *testing.T) {
 	const target1 = "dev-1-test"
 	const target2 = "prod-1-test"
 	const region = "us-central1"
-	const svc1 = "deployment-prod-1-google-test"
+	const svc1 = "deployment-prod-1-google"
 	const svc2 = "trigger-sa-1-test"
 	bpt := tft.NewTFBlueprintTest(t)
 
