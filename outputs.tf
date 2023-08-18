@@ -26,6 +26,6 @@ output "execution_sa" {
 
 
 output "delivery_pipeline_and_target" {
-  value       = { "google_clouddeploy_delivery_pipeline.delivery_pipeline.id" = flatten([for target in local.stage_targets : google_clouddeploy_target.target[target.target_name].id]) }
+  value       = { (google_clouddeploy_delivery_pipeline.delivery_pipeline.id) = flatten([for target in local.stage_targets : google_clouddeploy_target.target[target.target_name].id]) }
   description = "List of Delivery Pipeline and respective Target"
 }
