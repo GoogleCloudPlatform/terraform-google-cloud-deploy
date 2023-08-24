@@ -59,7 +59,7 @@ module "cloud_deploy" {
 | location | Location of the Pipeline | `string` | n/a | yes |
 | pipeline\_name | Name of the Delivery Pipeline | `string` | n/a | yes |
 | project | Project Name | `string` | n/a | yes |
-| stage\_targets | List of object specifications for Deploy Targets | <pre>list(object({<br>    target                            = string<br>    profiles                          = list(string)<br>    gke                               = string<br>    gke_cluster_sa                    = list(string)<br>    artifact_storage                  = string<br>    require_approval                  = bool<br>    execution_configs_service_account = string<br>    worker_pool                       = string<br>  }))</pre> | n/a | yes |
+| stage\_targets | List of object specifications for Deploy Targets | <pre>list(object({<br>    target                            = string<br>    profiles                          = list(string)<br>    gke                               = string<br>    gke_internal_ip_only              = bool<br>    gke_cluster_sa                    = list(string)<br>    artifact_storage                  = string<br>    require_approval                  = bool<br>    execution_configs_service_account = string<br>    worker_pool                       = string<br>  }))</pre> | n/a | yes |
 
 ## Outputs
 
@@ -67,6 +67,7 @@ module "cloud_deploy" {
 |------|-------------|
 | cloud\_trigger\_sa | List of Cloud Build Trigger Service Account |
 | delivery\_pipeline\_and\_target | List of Delivery Pipeline and respective Target |
+| delivery\_pipeline\_id | An identifier for the resource with format `projects/{{project}}/locations/{{location}}/deliveryPipelines/{{name}}` |
 | deployment\_sa | List of Deploy target Execution Service Account |
 
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
