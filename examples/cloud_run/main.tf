@@ -15,7 +15,8 @@
  */
 
 module "cloud_deploy_run" {
-  source = "../../"
+  source  = "GoogleCloudPlatform/cloud-deploy/google"
+  version = "~> 0.1"
 
   pipeline_name = var.pipeline_name
   location      = var.location
