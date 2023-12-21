@@ -103,7 +103,7 @@ module "gke" {
 
 module "cloud_deploy" {
   source        = "GoogleCloudPlatform/cloud-deploy/google"
-  version       = "~> 0.1"
+  version       = "~> 0.2"
   pipeline_name = var.pipeline_name
   location      = var.location
   project       = var.project
