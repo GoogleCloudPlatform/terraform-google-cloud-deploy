@@ -21,7 +21,7 @@ locals {
 
 module "project" {
   source                  = "terraform-google-modules/project-factory/google"
-  version                 = "~> 14.0"
+  version                 = "~> 15.0"
   for_each                = toset(local.projects)
   name                    = each.value
   random_project_id       = "true"
