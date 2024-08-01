@@ -30,7 +30,7 @@ GKE cluster creation in the same project.
 | location | n/a | `string` | n/a | yes |
 | pipeline\_name | n/a | `string` | n/a | yes |
 | project | n/a | `string` | n/a | yes |
-| stage\_targets | n/a | <pre>list(object({<br>    target_name        = string<br>    profiles           = list(string)<br>    target_create      = bool<br>    target_type        = string<br>    target_spec        = map(string)<br>    require_approval   = bool<br>    exe_config_sa_name = string<br>    execution_config   = map(string)<br>    strategy           = any<br>  }))</pre> | `[]` | no |
+| stage\_targets | n/a | <pre>list(object({<br>    target_name        = string<br>    profiles           = list(string)<br>    target_create      = bool<br>    target_type        = string<br>    target_spec        = map(string)<br>    require_approval   = bool<br>    exe_config_sa_name = string<br>    execution_config   = map(string)<br>    strategy           = any<br>  }))</pre> | n/a | yes |
 | trigger\_sa\_create | n/a | `bool` | n/a | yes |
 | trigger\_sa\_name | n/a | `string` | n/a | yes |
 

@@ -38,7 +38,6 @@ variable "stage_targets" {
     execution_config   = map(string)
     strategy           = any
   }))
-  default = []
 }
 
 variable "trigger_sa_name" {
