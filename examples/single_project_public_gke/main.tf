@@ -96,6 +96,8 @@ module "gke" {
     max_count          = 2                   # Maximum Node Count for Cluster
     max_pods_per_node  = 10                  # Maximum pods per node. Default is 110
   }, ]
+
+  deletion_protection = false
 }
 
 
