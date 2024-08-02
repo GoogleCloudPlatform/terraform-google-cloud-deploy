@@ -62,7 +62,7 @@ provider "kubernetes" {
 }
 
 module "gke" {
-  version                    = "25.0.0"
+  version                    = "31.1"
   source                     = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
   project_id                 = var.project
   name                       = local.cluster_name
@@ -96,6 +96,8 @@ module "gke" {
     max_count          = 2                   # Maximum Node Count for Cluster
     max_pods_per_node  = 10                  # Maximum pods per node. Default is 110
   }, ]
+
+  deletion_protection = false
 }
 
 
