@@ -98,7 +98,7 @@ resource "google_project_iam_member" "cloudbuild_service_agent_role" {
 
 module "gcloud" {
   source                = "terraform-google-modules/gcloud/google"
-  version               = "~> 3.4.0"
+  version               = "~> 3.4"
   module_depends_on     = [module.project]
   platform              = "linux"
   create_cmd_entrypoint = "gcloud"
