@@ -8,6 +8,13 @@ and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 This changelog is generated automatically based on [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [0.3.0](https://github.com/GoogleCloudPlatform/terraform-google-cloud-deploy/compare/v0.2.0...v0.3.0) (2024-10-30)
+
+
+### Features
+
+* **deps:** Update Terraform google to v6 ([#55](https://github.com/GoogleCloudPlatform/terraform-google-cloud-deploy/issues/55)) ([a76015e](https://github.com/GoogleCloudPlatform/terraform-google-cloud-deploy/commit/a76015ef7b536b27f847096d04a6db55a733309c))
+
 ## [0.2.0](https://github.com/GoogleCloudPlatform/terraform-google-cloud-deploy/compare/v0.1.0...v0.2.0) (2023-12-20)
 
 
