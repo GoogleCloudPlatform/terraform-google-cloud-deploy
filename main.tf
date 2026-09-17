@@ -132,7 +132,7 @@ resource "google_clouddeploy_target" "target" {
 module "trigger_service_account" {
   count        = var.trigger_sa_create ? 1 : 0
   source       = "terraform-google-modules/service-accounts/google"
-  version      = "~> 4.0"
+  version      = "~> 5.0"
   project_id   = var.project
   names        = [var.trigger_sa_name]
   display_name = "TF_managed_${var.trigger_sa_name}"
@@ -152,7 +152,7 @@ module "trigger_service_account" {
 module "execution_service_accounts" {
   for_each      = { for i in local.target_sa : "${i.project}=>${i.exe_sa}" => i }
   source        = "terraform-google-modules/service-accounts/google"
-  version       = "~> 4.0"
+  version       = "~> 5.0"
   project_id    = each.value.project
   names         = [each.value.exe_sa]
   display_name  = "TF_managed_${each.value.exe_sa}"
